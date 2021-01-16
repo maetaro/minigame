@@ -1,7 +1,5 @@
 export const sum = (...a: number[]) => a.reduce((acc, val) => acc + val, 0);
 
-console.log(sum(1, 2));
-
 class Game {
   parent;
   canvas: HTMLCanvasElement;
