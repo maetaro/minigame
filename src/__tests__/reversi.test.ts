@@ -1,9 +1,9 @@
-import { sum } from '../reversi';
+import { sum } from "../reversi";
 
-test('basic', () => {
+test("basic", () => {
   expect(sum()).toBe(0);
 });
 
-test('basic again', () => {
+test("basic again", () => {
   expect(sum(1, 2)).toBe(3);
 });
