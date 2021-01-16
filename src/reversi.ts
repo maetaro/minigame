@@ -1,6 +1,6 @@
 export const sum = (...a: number[]) => a.reduce((acc, val) => acc + val, 0);
 
-class Game {
+export class Game {
   parent;
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D | null;
