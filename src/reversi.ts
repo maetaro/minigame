@@ -1,18 +1,15 @@
-export const sum
-  = (...a: number[]) =>
-    a.reduce((acc, val) => acc + val, 0);
+export const sum = (...a: number[]) => a.reduce((acc, val) => acc + val, 0);
 
 console.log(sum(1, 2));
 
-
 class Game {
   parent;
-  canvas:HTMLCanvasElement;
-  context:CanvasRenderingContext2D | null;
+  canvas: HTMLCanvasElement;
+  context: CanvasRenderingContext2D | null;
   constructor(parent: any) {
     this.parent = parent;
     this.canvas = document.createElement("canvas");
-    this.context = this.canvas.getContext('2d');
+    this.context = this.canvas.getContext("2d");
     parent.appendChild(this.canvas);
     requestAnimationFrame((timestamp) => this.mainloop(timestamp));
   }
@@ -29,9 +26,7 @@ class Game {
     // }
     requestAnimationFrame((timestamp) => this.mainloop(timestamp));
   }
-  update(timestamp: any) {
-
-  }
+  update(timestamp: any) {}
   draw() {
     if (this.context == null) {
       return;
@@ -60,4 +55,4 @@ class Game {
 window.onload = () => {
   const div = document.getElementById("board");
   new Game(div);
-}
+};
