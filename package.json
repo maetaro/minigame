@@ -6,11 +6,10 @@
   "scripts": {
     "format": "prettier --write .",
     "test": "jest",
-    "docs": "typedoc src",
+    "docs": "typedoc",
     "build": "run-s format test docs build:webpack",
     "build:webpack": "webpack",
-    "start": "live-server dist",
-    "startdocs": "live-server docs"
+    "start": "live-server dist"
   },
   "repository": {
     "type": "git",
