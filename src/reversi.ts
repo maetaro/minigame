@@ -4,24 +4,29 @@ export class Game {
   parent;
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D | null;
+  frameCount: any;
+  fps: any;
+  prevTime: number;
   constructor(parent: any) {
     this.parent = parent;
     this.canvas = document.createElement("canvas");
     this.context = this.canvas.getContext("2d");
     parent.appendChild(this.canvas);
+    this.fps = document.getElementById("fps");
+    this.prevTime = performance.now();
     requestAnimationFrame((timestamp) => this.mainloop(timestamp));
   }
   mainloop(timestamp: any) {
-    // this.frameCount++;
+    this.frameCount++;
     this.update(timestamp);
     this.draw();
-    // const now = performance.now();
-    // const elapsed = (now - this.prevTime);
-    // if (elapsed > 1000) {
-    //   this.fps.innerText = `${this.frameCount}fps`;
-    //   this.prevTime = performance.now();
-    //   this.frameCount = 0;
-    // }
+    const now = performance.now();
+    const elapsed = now - this.prevTime;
+    if (elapsed > 1000) {
+      this.fps.innerText = `${this.frameCount}fps`;
+      this.prevTime = performance.now();
+      this.frameCount = 0;
+    }
     requestAnimationFrame((timestamp) => this.mainloop(timestamp));
   }
   update(timestamp: any) {}
