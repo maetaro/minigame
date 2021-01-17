@@ -9,7 +9,8 @@
     "docs": "typedoc",
     "build": "run-s format test docs build:webpack",
     "build:webpack": "webpack",
-    "start": "live-server dist"
+    "start": "live-server dist",
+    "all": "run-s build start"
   },
   "repository": {
     "type": "git",
