@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/maetaro/reversi#readme",
   "devDependencies": {
+    "@tensorflow/tfjs": "^2.8.4",
     "@types/jest": "^26.0.20",
     "@types/node": "^14.14.21",
     "jest": "^26.6.3",
@@ -39,7 +40,6 @@
     "webpack-cli": "^4.3.1"
   },
   "dependencies": {
-    "@tensorflow-models/mobilenet": "^2.0.4",
-    "@tensorflow/tfjs": "^2.8.4"
+    "@tensorflow-models/mobilenet": "^2.0.4"
   }
 }
