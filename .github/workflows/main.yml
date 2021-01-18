@@ -2,13 +2,13 @@
 
 name: CI
 
-# Controls when the action will run. 
+# Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -60,11 +60,11 @@ jobs:
           GITHUB_EMAIL: "test-builduser@sample.com"
           GITHUB_REPOSITORY: "maetaro/maetaro.github.io"
         run: |
-            cd maetaro.github.io
-            git config --local user.name "${GITHUB_USER}"
-            git config --local user.email "${GITHUB_EMAIL}"
-            git remote set-url origin git@github.com:maetaro/maetaro.github.io.git
-            git config remote.origin.url "git@github.com:maetaro/maetaro.github.io.git"
-            git add reversi
-            git commit -m "auto rebuilding site"
-            git push origin master
+          cd maetaro.github.io
+          git config --local user.name "${GITHUB_USER}"
+          git config --local user.email "${GITHUB_EMAIL}"
+          git remote set-url origin git@github.com:maetaro/maetaro.github.io.git
+          git config remote.origin.url "git@github.com:maetaro/maetaro.github.io.git"
+          git add reversi
+          git commit -m "auto rebuilding site"
+          git push origin master
