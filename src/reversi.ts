@@ -1,6 +1,7 @@
 export const sum = (...a: number[]) => a.reduce((acc, val) => acc + val, 0);
-// import { tf } from "@tensorflow/tfjs"
-const tf = require("@tensorflow/tfjs");
+
+import * as tf from "@tensorflow/tfjs";
+// const tf = require("@tensorflow/tfjs");
 
 class GameObject {
   game;
@@ -264,8 +265,9 @@ class Board extends GameObject {
     const y_pred = await model.predict(xs);
     // y_pred.print();
 
+    // console.log(y_pred.toString());
     // convert to array
-    const values = await y_pred.data();
+    const values = await (y_pred as tf.Tensor).data();
     // console.log(values);
     for (let i = 0, len = values.length; i < len; i += 1) {
       if (this.canPut(self, i, turnNo)) {
