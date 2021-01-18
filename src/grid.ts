@@ -31,7 +31,7 @@ export class Grid {
   }
   /**
    * Returns the specified position. width separated by columns.
-   * @param index 
+   * @param index
    */
   span(index: number): number {
     return (this.width / this.columns) * index;
