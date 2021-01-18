@@ -1,4 +1,4 @@
-import { sum, GameObject } from "../reversi";
+import { sum } from "../reversi";
 
 describe("sum function", () => {
   test("basic", () => {
