@@ -1,123 +1,30 @@
 export const sum = (...a: number[]) => a.reduce((acc, val) => acc + val, 0);
+// import { tf } from "@tensorflow/tfjs"
+const tf = require("@tensorflow/tfjs");
 
-export class Game {
-  parent: HTMLElement;
-  canvas: HTMLCanvasElement;
-  context: CanvasRenderingContext2D | null;
-  frameCount: number = 0;
-  fps: HTMLElement | null;
-  prevTime: number;
-  children: GameObject[];
-  size: number;
-  constructor(parent: HTMLElement) {
-    this.parent = parent;
-    this.canvas = document.createElement("canvas");
-    this.context = this.canvas.getContext("2d");
-    parent.appendChild(this.canvas);
-    this.fps = document.getElementById("fps");
-    this.prevTime = performance.now();
-    this.children = [];
-    this.size =
-      Math.min(
-        document.documentElement.clientWidth,
-        document.documentElement.clientHeight
-      ) - 50;
-    requestAnimationFrame((timestamp) => this.mainloop(timestamp));
-  }
-  mainloop(timestamp: number) {
-    if (this.context == null) {
-      return;
-    }
-    this.frameCount++;
-    this.resizeCanvas();
-    this.update(timestamp);
-    this.context.clearRect(0, 0, this.size, this.size);
-    this.draw(this.context);
-    const now = performance.now();
-    const elapsed = now - this.prevTime;
-    if (elapsed > 1000) {
-      this.fps!.innerText = `${this.frameCount}fps`;
-      this.prevTime = performance.now();
-      this.frameCount = 0;
-    }
-    requestAnimationFrame((timestamp) => this.mainloop(timestamp));
-  }
-  update(timestamp: number) {
-    for (const iterator of this.children) {
-      iterator.update(timestamp);
-    }
-  }
-  draw(context: CanvasRenderingContext2D) {
-    for (const iterator of this.children) {
-      iterator.draw(context);
-    }
-  }
-  resizeCanvas() {
-    this.size =
-      Math.min(
-        document.documentElement.clientWidth,
-        document.documentElement.clientHeight
-      ) - 50;
-    this.size = 560;
-    this.canvas.width = this.size;
-    this.canvas.height = this.size;
-  }
-}
-
-export class GameObject {
-  game: Game;
-  children: GameObject[];
-  constructor(game: Game) {
+class GameObject {
+  game;
+  constructor(game: any) {
     this.game = game;
-    this.children = [];
   }
-  update(timestamp: number) {
-    for (const iterator of this.children) {
-      iterator.update(timestamp);
-    }
-  }
-  draw(context: CanvasRenderingContext2D) {
-    for (const iterator of this.children) {
-      iterator.draw(context);
-    }
-  }
-  // onclick(self, e) {}
-  // onmousemove(self, e) {}
-  // onmouseout(self, e) {}
+  update(timestamp: any) {}
+  draw(context: any) {}
+  onclick(self: any, e: any) {}
+  onmousemove(self: any, e: any) {}
+  onmouseout(self: any, e: any) {}
 }
-
-export class Reversi extends Game {
-  static borderWeight = 2;
-  static cellWidth: number = 0;
-  constructor(parent: HTMLElement) {
-    super(parent);
-    // Reversi.cellWidth = (this.size - Reversi.borderWeight * 9) / 8;
-    Reversi.cellWidth = 67;
-    this.children.push(new Board(this));
-  }
-  resizeCanvas() {
-    super.resizeCanvas();
-    // Reversi.cellWidth = (this.size - Reversi.borderWeight * 9) / 8;
-  }
-}
-export class Board extends GameObject {
-  hoverCellIndex: number | null = null;
-  constructor(game: Game) {
+class Board extends GameObject {
+  hoverCellIndex: any;
+  constructor(game: any) {
     super(game);
-    this.children.push(new Stone(game, 3, 3, StoneState.White));
-    this.children.push(new Stone(game, 4, 3, StoneState.Black));
-    this.children.push(new Stone(game, 3, 4, StoneState.Black));
-    this.children.push(new Stone(game, 4, 4, StoneState.White));
+    this.hoverCellIndex = null;
   }
-  get stones(): number[] {
-    const stones = new Array(64).fill(0);
-    return stones;
-  }
-  draw(context: CanvasRenderingContext2D) {
+  update(timestamp: any) {}
+  draw(context: any) {
     context.fillStyle = "green";
     context.fillRect(0, 0, this.game.size, this.game.size);
-    const borderWeight = Reversi.borderWeight;
-    const cellWidth = Reversi.cellWidth;
+    const borderWeight = Game.borderWeight;
+    const cellWidth = Game.cellWidth;
     context.fillStyle = "black";
     for (let i = 0; i < 9; i++) {
       const pos = (borderWeight + cellWidth) * i;
@@ -138,33 +45,253 @@ export class Board extends GameObject {
       context.lineWidth = 1;
       context.stroke();
     }
-    super.draw(context);
+  }
+  async onclick(self: any, e: any) {
+    if (this.hoverCellIndex == null) {
+      return;
+    }
+    let index = this.hoverCellIndex;
+    if (self.stones[index] != 0) {
+      return;
+    }
+    const turnNo =
+      self.turn.innerText == Stone.black ? Stone.black : Stone.white;
+    if (turnNo == Stone.white) {
+      index = await this.putByAI(self, turnNo);
+    }
+    if (!this.canPut(self, index, turnNo)) {
+      return;
+    }
+    this.put(self, index, turnNo);
+    self.turn.innerText =
+      self.turn.innerText == Stone.black ? Stone.white : Stone.black;
+    self.showStat();
+    // 白を自動で実行
+    const turnNo2 =
+      self.turn.innerText == Stone.black ? Stone.black : Stone.white;
+    index = await this.putByAI(self, turnNo2);
+    console.log(index);
+    if (!this.put(self, index, turnNo2)) {
+      return;
+    }
+    self.turn.innerText =
+      self.turn.innerText == Stone.black ? Stone.white : Stone.black;
+    self.showStat();
+  }
+  onmousemove(self: any, e: any) {
+    const rect = e.target.getBoundingClientRect();
+    const mouseX = e.clientX - Math.floor(rect.left) - 2;
+    const mouseY = e.clientY - Math.floor(rect.top) - 2;
+    if (mouseX < 0 || mouseY < 0) {
+      return null;
+    }
+    const x = Math.floor(mouseX / Game.cellWidth);
+    const y = Math.floor(mouseY / Game.cellWidth);
+    const index = x + y * 8;
+    this.hoverCellIndex = index;
+  }
+  onmouseout(self: any, e: any) {
+    this.hoverCellIndex = null;
+  }
+  canPut(self: any, index: any, turnNo: any) {
+    return this.put(self, index, turnNo, true);
+  }
+  put(game: any, index: any, turnNo: any, dryRun = false) {
+    const getIdx = (pos: any, x: any, y: any) => {
+      return pos.x + x + (pos.y + y) * 8;
+    };
+    const x = index % 8;
+    const y = Math.floor(index / 8);
+    const currPos = { x: x, y: y };
+    // 上下左右に走査する。自分または空セルの場合は中断。
+    let flipCount = 0;
+    const flip = (f1: any, f2: any) => {
+      for (let y = 1; y < 8; y++) {
+        const i = f1(currPos, y);
+        if (i < 0 || 63 < i) {
+          continue;
+        }
+        if (game.stones[i] != 0 && game.stones[i] != turnNo) {
+          continue;
+        }
+        if (y > 1 && game.stones[i] == turnNo) {
+          for (const j of f2(i)) {
+            flipCount++;
+            if (!dryRun) {
+              game.stones[j] = turnNo;
+              const x2 = j % 8;
+              const y2 = Math.floor(j / 8);
+              const items = game.children.filter(
+                (node: any) => node.x == x2 && node.y == y2
+              );
+              if (items.length > 0) {
+                items[0].flip();
+              }
+            }
+          }
+        }
+        break;
+      }
+    };
+    // 上
+    // 右上
+    // 右
+    // 右下↘︎
+    // 下
+    // 左下
+    // 左
+    // 左上
+    flip(
+      (currPos: any, y: any) => {
+        return getIdx(currPos, 0, y * -1);
+      },
+      function* (i: any) {
+        for (let j = i + 1; j < index; j += 8) {
+          yield j;
+        }
+      }
+    );
+    flip(
+      (currPos: any, y: any) => {
+        return getIdx(currPos, y, y * -1);
+      },
+      function* (i: any) {
+        for (let j = i + 1; j < index; j += 7) {
+          yield j;
+        }
+      }
+    );
+    flip(
+      (currPos: any, x: any) => {
+        return getIdx(currPos, x, 0);
+      },
+      function* (i: any) {
+        for (let j = i - 1; j > index; j -= 1) {
+          yield j;
+        }
+      }
+    );
+    flip(
+      (currPos: any, x: any) => {
+        return getIdx(currPos, x, x);
+      },
+      function* (i: any) {
+        for (let j = i - 1; j > index; j -= 9) {
+          yield j;
+        }
+      }
+    );
+    flip(
+      (currPos: any, y: any) => {
+        return getIdx(currPos, 0, y);
+      },
+      function* (i: any) {
+        for (let j = i - 1; j > index; j -= 8) {
+          yield j;
+        }
+      }
+    );
+    flip(
+      (currPos: any, y: any) => {
+        return getIdx(currPos, y * -1, y);
+      },
+      function* (i: any) {
+        for (let j = i - 1; j > index; j -= 7) {
+          yield j;
+        }
+      }
+    );
+    flip(
+      (currPos: any, x: any) => {
+        return getIdx(currPos, x * -1, 0);
+      },
+      function* (i: any) {
+        for (let j = i + 1; j < index; j += 1) {
+          yield j;
+        }
+      }
+    );
+    flip(
+      (currPos: any, y: any) => {
+        return getIdx(currPos, y * -1, y * -1);
+      },
+      function* (i: any) {
+        for (let j = i + 1; j < index; j += 9) {
+          yield j;
+        }
+      }
+    );
+    if (flipCount == 0) {
+      return false;
+    }
+    if (!dryRun) {
+      game.stones[index] = turnNo;
+      this.game.children.push(new Stone(this, x, y, turnNo));
+    }
+    return true;
+  }
+  async putByAI(self: any, turnNo: any) {
+    const toPreditionData = () => {
+      const get = (no: any) => {
+        // console.log(no);
+        return self.stones.map((e: any) => {
+          if (e == 0) return 0;
+          if (e == no) return 1;
+          return 0;
+        });
+      };
+      const to8x8 = (ary: any) => {
+        var tmp = [];
+        for (var i = 0; i < ary.length; i += 8) {
+          tmp.push(ary.slice(i, i + 8));
+        }
+        return tmp;
+      };
+      // console.log(get(Stone.black));
+      // console.log(get(Stone.white));
+      const playerBoard = to8x8(get(turnNo));
+      const enemyBoard = to8x8(
+        get(turnNo == Stone.white ? Stone.black : Stone.white)
+      );
+      return tf.tensor([[playerBoard, enemyBoard]]);
+    };
+    const xs = toPreditionData();
+    // console.log(xs);
+    // load model
+    const path = "model/model.json";
+    const model = await tf.loadGraphModel(path);
+    // predict
+    const y_pred = await model.predict(xs);
+    // y_pred.print();
+
+    // convert to array
+    const values = await y_pred.data();
+    // console.log(values);
+    for (let i = 0, len = values.length; i < len; i += 1) {
+      if (this.canPut(self, i, turnNo)) {
+        continue;
+      }
+      values[i] = 0;
+    }
+    const data = await tf.argMax(values).data();
+    // console.log(data[0]);
+    return data[0];
   }
 }
-
-const StoneState = {
-  Black: "黒",
-  White: "白",
-} as const;
-type StoneState = typeof StoneState[keyof typeof StoneState];
-
-export class Stone extends GameObject {
-  static image: HTMLImageElement | null = null;
-  static imageLoaded: boolean = false;
+class Stone extends GameObject {
+  static black = "黒";
+  static white = "白";
+  static image: any = null;
   static margin = 2;
-  currentFrame: number;
-  frames: {
-    ms: number;
-    frames: number[];
-  }[];
-  prevtime: number;
-  x: number;
-  y: number;
-  state: StoneState;
-  constructor(game: Game, x: number, y: number, state: StoneState) {
+  currentFrame;
+  frames: any;
+  prevtime: any;
+  x;
+  y;
+  color;
+  constructor(game: any, x: any, y: any, color: any) {
     super(game);
-    if (!Stone.imageLoaded) {
-      Stone.imageLoaded = true;
+    if (!Stone.image) {
       const img = new Image();
       img.src = "image/stone.png";
       img.onload = () => {
@@ -173,20 +300,10 @@ export class Stone extends GameObject {
       };
     }
     this.currentFrame = 0;
-    const ma = Stone.margin;
     this.frames = [
       {
         ms: 5000,
-        frames: [
-          0,
-          0,
-          100,
-          100,
-          0 + ma,
-          0 + ma,
-          Reversi.cellWidth,
-          Reversi.cellWidth,
-        ],
+        frames: [0, 0, 100, 100, 0 + Stone.margin, 0 + Stone.margin, 67, 67],
       },
       {
         ms: 300,
@@ -195,10 +312,10 @@ export class Stone extends GameObject {
           0,
           50,
           100,
-          15 + ma,
-          0 + ma,
-          Reversi.cellWidth / 2,
-          Reversi.cellWidth,
+          15 + Stone.margin,
+          0 + Stone.margin,
+          33.5,
+          67,
         ],
       },
       {
@@ -208,32 +325,23 @@ export class Stone extends GameObject {
           0,
           50,
           100,
-          20 + ma,
-          0 + ma,
-          Reversi.cellWidth / 2,
-          Reversi.cellWidth,
+          20 + Stone.margin,
+          0 + Stone.margin,
+          33.5,
+          67,
         ],
       },
       {
         ms: 1000,
-        frames: [
-          200,
-          0,
-          100,
-          100,
-          0 + Stone.margin,
-          0 + Stone.margin,
-          Reversi.cellWidth,
-          Reversi.cellWidth,
-        ],
+        frames: [200, 0, 100, 100, 0 + Stone.margin, 0 + Stone.margin, 67, 67],
       },
     ];
     this.prevtime = 0;
     this.x = x;
     this.y = y;
-    this.state = state;
+    this.color = color;
   }
-  update(timestamp: number) {
+  update(timestamp: any) {
     // console.log(timestamp);
     const frame = this.frames[this.currentFrame];
     if (timestamp - this.prevtime > frame.ms) {
@@ -242,28 +350,133 @@ export class Stone extends GameObject {
       this.prevtime = timestamp;
     }
   }
-  draw(context: CanvasRenderingContext2D) {
+  draw(context: any) {
     if (!Stone.image) return;
-    const frameIndex = this.state == StoneState.Black ? 0 : 3;
+    const frameIndex = this.color == Stone.black ? 0 : 3;
     const frame = this.frames[frameIndex];
     const frames = frame.frames.slice(0, 8);
-    frames[4] += (Reversi.borderWeight + Reversi.cellWidth) * this.x + 2;
-    frames[5] += (Reversi.borderWeight + Reversi.cellWidth) * this.y + 2;
-    context.drawImage(
-      Stone.image,
-      frames[0],
-      frames[1],
-      frames[2],
-      frames[3],
-      frames[4],
-      frames[5],
-      frames[6],
-      frames[7]
-    );
+    frames[4] += (Game.borderWeight + 67) * this.x + 2;
+    frames[5] += (Game.borderWeight + 67) * this.y + 2;
+    context.drawImage(Stone.image, ...frames);
   }
   flip() {
-    this.state =
-      this.state == StoneState.Black ? StoneState.White : StoneState.Black;
+    this.color = this.color == Stone.black ? Stone.white : Stone.black;
+  }
+}
+class Game {
+  static borderWeight = 2;
+  static cellWidth = 0; //(this.size - (Game.borderWeight * 9)) / 8;
+  fps: any;
+  canvas: any;
+  context: any;
+  frameCount: any;
+  prevTime: any;
+  size: any;
+  stones: any;
+  turn: any;
+  children: any;
+  constructor(parent: any) {
+    const self = this;
+    // 描画情報
+    this.fps = document.getElementById("fps");
+    this.canvas = document.createElement("canvas");
+    this.context = this.canvas.getContext("2d");
+    this.frameCount = 0;
+    this.prevTime = performance.now();
+    parent.appendChild(this.canvas);
+    this.canvas.onclick = (e: any) => self.onclick(self, e);
+    this.canvas.onmousemove = (e: any) => self.onmousemove(self, e);
+    this.canvas.onmouseout = (e: any) => self.onmouseout(self, e);
+    this.size =
+      Math.min(
+        document.documentElement.clientWidth,
+        document.documentElement.clientHeight
+      ) - 50;
+    Game.cellWidth = (this.size - Game.borderWeight * 9) / 8;
+    // リバーシ情報
+    this.stones = new Array(64).fill(0);
+    this.stones[27] = Stone.white;
+    this.stones[28] = Stone.black;
+    this.stones[35] = Stone.black;
+    this.stones[36] = Stone.white;
+    this.turn = document.getElementById("turn");
+    this.turn.innerText = Stone.black;
+    this.children = [];
+    this.children.push(new Board(this));
+    this.children.push(new Stone(this, 3, 3, Stone.white));
+    this.children.push(new Stone(this, 4, 3, Stone.black));
+    this.children.push(new Stone(this, 3, 4, Stone.black));
+    this.children.push(new Stone(this, 4, 4, Stone.white));
+    requestAnimationFrame((timestamp) => this.mainloop(timestamp));
+  }
+  mainloop(timestamp: any) {
+    this.frameCount++;
+    this.update(timestamp);
+    this.draw();
+    const now = performance.now();
+    const elapsed = now - this.prevTime;
+    if (elapsed > 1000) {
+      this.fps.innerText = `${this.frameCount}fps`;
+      this.prevTime = performance.now();
+      this.frameCount = 0;
+    }
+    requestAnimationFrame((timestamp) => this.mainloop(timestamp));
+  }
+  async onclick(self: any, e: any) {
+    for (const iterator of this.children) {
+      iterator.onclick(self, e);
+    }
+  }
+  showStat() {
+    const label: any = document.getElementById("stat");
+    const b = this.stones.filter((e: any) => e == Stone.black).length;
+    const w = this.stones.filter((e: any) => e == Stone.white).length;
+    label.innerText = `黒:${b}まい 白:${w}まい`;
+  }
+  onmousemove(self: any, e: any) {
+    for (const iterator of this.children) {
+      iterator.onmousemove(self, e);
+    }
+  }
+  onmouseout(self: any, e: any) {
+    for (const iterator of this.children) {
+      iterator.onmouseout(self, e);
+    }
+  }
+  update(timestamp: any) {
+    for (const iterator of this.children) {
+      iterator.update(timestamp);
+    }
+  }
+  draw() {
+    this.size = 560; // Math.min(document.documentElement.clientWidth, document.documentElement.clientHeight) - 50;
+    Game.cellWidth = (this.size - Game.borderWeight * 9) / 8;
+
+    const size = this.size;
+    const borderWeight = Game.borderWeight;
+    const cellWidth = Game.cellWidth;
+    const context = this.context;
+
+    this.canvas.width = size;
+    this.canvas.height = size;
+    context.clearRect(0, 0, size, size);
+
+    for (const iterator of this.children) {
+      iterator.draw(context);
+    }
+
+    // 石
+    // for (let i = 0; i < this.stones.length; i++) {
+    //   const stone = this.stones[i];
+    //   const x = i % 8;
+    //   const y = Math.floor(i / 8);
+    //   if (stone == Stone.white) {
+    //     Stone.drawCircle(x, y, "white", this.context, borderWeight, cellWidth);
+    //   }
+    //   if (stone == Stone.black) {
+    //     Stone.drawCircle(x, y, "black", this.context, borderWeight, cellWidth);
+    //   }
+    // }
   }
 }
 
@@ -272,5 +485,5 @@ window.onload = () => {
   if (div == null) {
     return;
   }
-  new Reversi(div);
+  new Game(div);
 };
