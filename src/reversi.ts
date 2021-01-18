@@ -1,7 +1,6 @@
 export const sum = (...a: number[]) => a.reduce((acc, val) => acc + val, 0);
 
 import * as tf from "@tensorflow/tfjs";
-// const tf = require("@tensorflow/tfjs");
 
 class GameObject {
   game: Game;
@@ -97,7 +96,7 @@ class Board extends GameObject {
   canPut(self: any, index: number, turnNo: any) {
     return this.put(self, index, turnNo, true);
   }
-  put(game: any, index: number, turnNo: any, dryRun = false) {
+  put(game: Game, index: number, turnNo: any, dryRun = false) {
     const getIdx = (pos: any, x: number, y: number) => {
       return pos.x + x + (pos.y + y) * 8;
     };
@@ -227,13 +226,13 @@ class Board extends GameObject {
     }
     if (!dryRun) {
       game.stones[index] = turnNo;
-      this.game.children.push(new Stone(this, x, y, turnNo));
+      this.game.children.push(new Stone(this.game, x, y, turnNo));
     }
     return true;
   }
   async putByAI(self: any, turnNo: any) {
     const toPreditionData = () => {
-      const get = (no: any) => {
+      const get = (no: any):number[] => {
         // console.log(no);
         return self.stones.map((e: any) => {
           if (e == 0) return 0;
@@ -241,7 +240,7 @@ class Board extends GameObject {
           return 0;
         });
       };
-      const to8x8 = (ary: any) => {
+      const to8x8 = (ary: number[]) => {
         var tmp = [];
         for (var i = 0; i < ary.length; i += 8) {
           tmp.push(ary.slice(i, i + 8));
@@ -291,7 +290,7 @@ class Stone extends GameObject {
   x;
   y;
   color;
-  constructor(game: any, x: any, y: any, color: any) {
+  constructor(game: Game, x: number, y: number, color: any) {
     super(game);
     if (!Stone.image) {
       const img = new Image();
@@ -343,7 +342,7 @@ class Stone extends GameObject {
     this.y = y;
     this.color = color;
   }
-  update(timestamp: any) {
+  update(timestamp: number) {
     // console.log(timestamp);
     const frame = this.frames[this.currentFrame];
     if (timestamp - this.prevtime > frame.ms) {
