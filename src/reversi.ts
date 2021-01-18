@@ -9,19 +9,19 @@ class GameObject {
     this.game = game;
   }
   update(timestamp: number) {}
-  draw(context: any) {}
-  onclick(self: any, e: any) {}
-  onmousemove(self: any, e: any) {}
-  onmouseout(self: any, e: any) {}
+  draw(context: CanvasRenderingContext2D) {}
+  onclick(self: Game, e: MouseEvent) {}
+  onmousemove(self: Game, e: MouseEvent) {}
+  onmouseout(self: Game, e: MouseEvent) {}
 }
 class Board extends GameObject {
-  hoverCellIndex: any;
-  constructor(game: any) {
+  hoverCellIndex: number | null;
+  constructor(game: Game) {
     super(game);
     this.hoverCellIndex = null;
   }
-  update(timestamp: any) {}
-  draw(context: any) {
+  update(timestamp: number) {}
+  draw(context: CanvasRenderingContext2D) {
     context.fillStyle = "green";
     context.fillRect(0, 0, this.game.size, this.game.size);
     const borderWeight = Game.borderWeight;
@@ -47,7 +47,7 @@ class Board extends GameObject {
       context.stroke();
     }
   }
-  async onclick(self: any, e: any) {
+  async onclick(self: Game, e: MouseEvent) {
     if (this.hoverCellIndex == null) {
       return;
     }
@@ -79,8 +79,8 @@ class Board extends GameObject {
       self.turn.innerText == Stone.black ? Stone.white : Stone.black;
     self.showStat();
   }
-  onmousemove(self: any, e: any) {
-    const rect = e.target.getBoundingClientRect();
+  onmousemove(self: Game, e: MouseEvent) {
+    const rect = (e.target as HTMLElement).getBoundingClientRect();
     const mouseX = e.clientX - Math.floor(rect.left) - 2;
     const mouseY = e.clientY - Math.floor(rect.top) - 2;
     if (mouseX < 0 || mouseY < 0) {
@@ -91,14 +91,14 @@ class Board extends GameObject {
     const index = x + y * 8;
     this.hoverCellIndex = index;
   }
-  onmouseout(self: any, e: any) {
+  onmouseout(self: Game, e: MouseEvent) {
     this.hoverCellIndex = null;
   }
-  canPut(self: any, index: any, turnNo: any) {
+  canPut(self: any, index: number, turnNo: any) {
     return this.put(self, index, turnNo, true);
   }
-  put(game: any, index: any, turnNo: any, dryRun = false) {
-    const getIdx = (pos: any, x: any, y: any) => {
+  put(game: any, index: number, turnNo: any, dryRun = false) {
+    const getIdx = (pos: any, x: number, y: number) => {
       return pos.x + x + (pos.y + y) * 8;
     };
     const x = index % 8;
@@ -143,80 +143,80 @@ class Board extends GameObject {
     // 左
     // 左上
     flip(
-      (currPos: any, y: any) => {
+      (currPos: any, y: number) => {
         return getIdx(currPos, 0, y * -1);
       },
-      function* (i: any) {
+      function* (i: number) {
         for (let j = i + 1; j < index; j += 8) {
           yield j;
         }
       }
     );
     flip(
-      (currPos: any, y: any) => {
+      (currPos: any, y: number) => {
         return getIdx(currPos, y, y * -1);
       },
-      function* (i: any) {
+      function* (i: number) {
         for (let j = i + 1; j < index; j += 7) {
           yield j;
         }
       }
     );
     flip(
-      (currPos: any, x: any) => {
+      (currPos: any, x: number) => {
         return getIdx(currPos, x, 0);
       },
-      function* (i: any) {
+      function* (i: number) {
         for (let j = i - 1; j > index; j -= 1) {
           yield j;
         }
       }
     );
     flip(
-      (currPos: any, x: any) => {
+      (currPos: any, x: number) => {
         return getIdx(currPos, x, x);
       },
-      function* (i: any) {
+      function* (i: number) {
         for (let j = i - 1; j > index; j -= 9) {
           yield j;
         }
       }
     );
     flip(
-      (currPos: any, y: any) => {
+      (currPos: any, y: number) => {
         return getIdx(currPos, 0, y);
       },
-      function* (i: any) {
+      function* (i: number) {
         for (let j = i - 1; j > index; j -= 8) {
           yield j;
         }
       }
     );
     flip(
-      (currPos: any, y: any) => {
+      (currPos: any, y: number) => {
         return getIdx(currPos, y * -1, y);
       },
-      function* (i: any) {
+      function* (i: number) {
         for (let j = i - 1; j > index; j -= 7) {
           yield j;
         }
       }
     );
     flip(
-      (currPos: any, x: any) => {
+      (currPos: any, x: number) => {
         return getIdx(currPos, x * -1, 0);
       },
-      function* (i: any) {
+      function* (i: number) {
         for (let j = i + 1; j < index; j += 1) {
           yield j;
         }
       }
     );
     flip(
-      (currPos: any, y: any) => {
+      (currPos: any, y: number) => {
         return getIdx(currPos, y * -1, y * -1);
       },
-      function* (i: any) {
+      function* (i: number) {
         for (let j = i + 1; j < index; j += 9) {
           yield j;
         }
@@ -434,7 +434,8 @@ class Game {
     }
   }
   showStat() {
-    const label: any = document.getElementById("stat");
+    const label = document.getElementById("stat");
+    if (!label) throw ReferenceError;
     const b = this.stones.filter((e: any) => e == Stone.black).length;
     const w = this.stones.filter((e: any) => e == Stone.white).length;
     label.innerText = `黒:${b}まい 白:${w}まい`;
