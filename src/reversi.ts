@@ -4,11 +4,11 @@ import * as tf from "@tensorflow/tfjs";
 // const tf = require("@tensorflow/tfjs");
 
 class GameObject {
-  game;
-  constructor(game: any) {
+  game: Game;
+  constructor(game: Game) {
     this.game = game;
   }
-  update(timestamp: any) {}
+  update(timestamp: number) {}
   draw(context: any) {}
   onclick(self: any, e: any) {}
   onmousemove(self: any, e: any) {}
@@ -368,27 +368,31 @@ class Stone extends GameObject {
 class Game {
   static borderWeight = 2;
   static cellWidth = 0; //(this.size - (Game.borderWeight * 9)) / 8;
-  fps: any;
-  canvas: any;
-  context: any;
-  frameCount: any;
-  prevTime: any;
-  size: any;
-  stones: any;
+  fps: HTMLElement;
+  canvas: HTMLCanvasElement;
+  context: CanvasRenderingContext2D;
+  frameCount: number;
+  prevTime: number;
+  size: number;
+  stones: any[];
   turn: any;
-  children: any;
-  constructor(parent: any) {
+  children: any[];
+  constructor(parent: HTMLElement) {
     const self = this;
     // 描画情報
-    this.fps = document.getElementById("fps");
+    const fps = document.getElementById("fps");
+    if (!fps) throw ReferenceError;
+    this.fps = fps;
     this.canvas = document.createElement("canvas");
-    this.context = this.canvas.getContext("2d");
+    const ctx = this.canvas.getContext("2d");
+    if (!ctx) throw ReferenceError;
+    this.context = ctx;
     this.frameCount = 0;
     this.prevTime = performance.now();
     parent.appendChild(this.canvas);
-    this.canvas.onclick = (e: any) => self.onclick(self, e);
-    this.canvas.onmousemove = (e: any) => self.onmousemove(self, e);
-    this.canvas.onmouseout = (e: any) => self.onmouseout(self, e);
+    this.canvas.onclick = (e: MouseEvent) => self.onclick(self, e);
+    this.canvas.onmousemove = (e: MouseEvent) => self.onmousemove(self, e);
+    this.canvas.onmouseout = (e: MouseEvent) => self.onmouseout(self, e);
     this.size =
       Math.min(
         document.documentElement.clientWidth,
@@ -411,7 +415,7 @@ class Game {
     this.children.push(new Stone(this, 4, 4, Stone.white));
     requestAnimationFrame((timestamp) => this.mainloop(timestamp));
   }
-  mainloop(timestamp: any) {
+  mainloop(timestamp: number) {
     this.frameCount++;
     this.update(timestamp);
     this.draw();
@@ -424,7 +428,7 @@ class Game {
     }
     requestAnimationFrame((timestamp) => this.mainloop(timestamp));
   }
-  async onclick(self: any, e: any) {
+  async onclick(self: Game, e: MouseEvent) {
     for (const iterator of this.children) {
       iterator.onclick(self, e);
     }
@@ -435,17 +439,17 @@ class Game {
     const w = this.stones.filter((e: any) => e == Stone.white).length;
     label.innerText = `黒:${b}まい 白:${w}まい`;
   }
-  onmousemove(self: any, e: any) {
+  onmousemove(self: Game, e: MouseEvent) {
     for (const iterator of this.children) {
       iterator.onmousemove(self, e);
     }
   }
-  onmouseout(self: any, e: any) {
+  onmouseout(self: Game, e: MouseEvent) {
     for (const iterator of this.children) {
       iterator.onmouseout(self, e);
     }
   }
-  update(timestamp: any) {
+  update(timestamp: number) {
     for (const iterator of this.children) {
       iterator.update(timestamp);
     }
