@@ -130,17 +130,17 @@ class Board extends GameObject {
       self.turn.innerText =
         self.turn.innerText == Stone.black ? Stone.white : Stone.black;
       self.showStat();
-      // 白を自動で実行
-      const turnNo2 =
-        self.turn.innerText == Stone.black ? Stone.black : Stone.white;
-      index = await this.putByAI(self, turnNo2);
-      console.log(index);
-      if (!this.put(self, index, turnNo2)) {
-        return;
-      }
-      self.turn.innerText =
-        self.turn.innerText == Stone.black ? Stone.white : Stone.black;
-      self.showStat();
+      // // 白を自動で実行
+      // const turnNo2 =
+      //   self.turn.innerText == Stone.black ? Stone.black : Stone.white;
+      // index = await this.putByAI(self, turnNo2);
+      // console.log(index);
+      // if (!this.put(self, index, turnNo2)) {
+      //   return;
+      // }
+      // self.turn.innerText =
+      //   self.turn.innerText == Stone.black ? Stone.white : Stone.black;
+      // self.showStat();
     } catch (err) {
       console.error(`name: ${err.name}`);
       console.error(`message: ${err.message}`);
@@ -179,7 +179,8 @@ class Board extends GameObject {
       const flip = (f1: any, f2: any) => {
         let y = 1;
         for (y = 1; y < 8; y++) {
-          const i = f1(y);
+          const nextPos = f1(y);
+          const i = getIdx(currPos, nextPos.x, nextPos.y);
           if (i < 0 || 63 < i) {
             break;
           }
@@ -214,7 +215,8 @@ class Board extends GameObject {
       const fs = {
         上: {
           f1: (b: number) => {
-            return getIdx(currPos, 0, b * -1);
+            return { x: 0, y: b * -1 };
+            // return getIdx(currPos, 0, b * -1);
           },
           f2: function* (y: number) {
             const i = getIdx(currPos, 0, y * -1 + 1);
@@ -225,7 +227,8 @@ class Board extends GameObject {
         },
         下: {
           f1: (b: number) => {
-            return getIdx(currPos, 0, b);
+            return { x: 0, y: b };
+            // return getIdx(currPos, 0, b);
           },
           f2: function* (y: number) {
             const i = getIdx(currPos, 0, y - 1);
@@ -236,7 +239,8 @@ class Board extends GameObject {
         },
         左: {
           f1: (b: number) => {
-            return getIdx(currPos, b * -1, 0);
+            return { x: b * -1, y: 0 };
+            // return getIdx(currPos, b * -1, 0);
           },
           f2: function* (x: number) {
             const i = getIdx(currPos, x * -1 + 1, 0);
@@ -247,7 +251,8 @@ class Board extends GameObject {
         },
         右: {
           f1: (b: number) => {
-            return getIdx(currPos, b - 1, 0);
+            return { x: b - 1, y: 0 };
+            // return getIdx(currPos, b - 1, 0);
           },
           f2: function* (x: number) {
             const i = getIdx(currPos, x - 1, 0);
