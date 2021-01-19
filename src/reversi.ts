@@ -2,6 +2,62 @@ export const sum = (...a: number[]) => a.reduce((acc, val) => acc + val, 0);
 
 import * as tf from "@tensorflow/tfjs";
 
+export class StonePosition {
+  _x: number;
+  _y: number;
+  constructor(x: number, y?: number) {
+    if (!y) {
+      const i = x;
+      this._x = i % 8;
+      this._y = Math.floor(i / 8);
+      return;
+    }
+    if (x < 0 || 7 < x) {
+      throw new RangeError(`x value allowd in 0 to 7. actual:${x}`);
+    }
+    if (y < 0 || 7 < y) {
+      throw new RangeError(`x value allowd in 0 to 7. actual:${x}`);
+    }
+    this._x = x;
+    this._y = y;
+  }
+  get x() {
+    return this._x;
+  }
+  get y() {
+    return this._y;
+  }
+  toIdx() {
+    return this._x + this._y * 8;
+  }
+  nextUp(): [boolean, StonePosition | null] {
+    if (this._y == 0) return [false, null];
+    return [true, new StonePosition(this._x, this._y - 1)];
+  }
+  nextUpToBorder(): StonePosition[] {
+    let result: StonePosition[] = [];
+    let next = this.nextUp();
+    while (next[0]) {
+      if (next[1] == null) break;
+      result.push(next[1]);
+      next = next[1].nextUp();
+    }
+    return result;
+  }
+  nextDown() {
+    if (this._y == 7) return [false, null];
+    return [true, new StonePosition(this._x, this._y + 1)];
+  }
+  nextLeft() {
+    if (this._x == 0) return [false, null];
+    return [true, new StonePosition(this._x - 1, this._y)];
+  }
+  nextRight() {
+    if (this._x == 7) return [false, null];
+    return [true, new StonePosition(this._x + 1, this._y)];
+  }
+}
+
 class GameObject {
   game: Game;
   constructor(game: Game) {
@@ -31,6 +87,16 @@ class Board extends GameObject {
       context.fillRect(pos, 0, borderWeight, this.game.size);
       context.fillRect(0, pos, this.game.size, borderWeight);
     }
+    for (let index = 0; index < 64; index++) {
+      context.font = "24px serif";
+      const x = index % 8;
+      const y = Math.floor(index / 8);
+      context.fillText(
+        `${index}`,
+        x * cellWidth + x * borderWeight,
+        (y + 1) * cellWidth + (y + 1) * borderWeight
+      );
+    }
     if (this.hoverCellIndex != null) {
       const i = this.hoverCellIndex;
       const x = i % 8;
@@ -47,36 +113,40 @@ class Board extends GameObject {
     }
   }
   async onclick(self: Game, e: MouseEvent) {
-    if (this.hoverCellIndex == null) {
-      return;
+    try {
+      if (this.hoverCellIndex == null) {
+        return;
+      }
+      let index = this.hoverCellIndex;
+      if (self.stones[index] != null) {
+        return;
+      }
+      const turnNo =
+        self.turn.innerText == Stone.black ? Stone.black : Stone.white;
+      if (!this.canPut(self, index, turnNo)) {
+        return;
+      }
+      this.put(self, index, turnNo);
+      self.turn.innerText =
+        self.turn.innerText == Stone.black ? Stone.white : Stone.black;
+      self.showStat();
+      // 白を自動で実行
+      const turnNo2 =
+        self.turn.innerText == Stone.black ? Stone.black : Stone.white;
+      index = await this.putByAI(self, turnNo2);
+      console.log(index);
+      if (!this.put(self, index, turnNo2)) {
+        return;
+      }
+      self.turn.innerText =
+        self.turn.innerText == Stone.black ? Stone.white : Stone.black;
+      self.showStat();
+    } catch (err) {
+      console.error(`name: ${err.name}`);
+      console.error(`message: ${err.message}`);
+      console.error(`stack: ${err.stack}`);
+      console.error(`${err}`);
     }
-    let index = this.hoverCellIndex;
-    if (self.stones[index] != 0) {
-      return;
-    }
-    const turnNo =
-      self.turn.innerText == Stone.black ? Stone.black : Stone.white;
-    if (turnNo == Stone.white) {
-      index = await this.putByAI(self, turnNo);
-    }
-    if (!this.canPut(self, index, turnNo)) {
-      return;
-    }
-    this.put(self, index, turnNo);
-    self.turn.innerText =
-      self.turn.innerText == Stone.black ? Stone.white : Stone.black;
-    self.showStat();
-    // 白を自動で実行
-    const turnNo2 =
-      self.turn.innerText == Stone.black ? Stone.black : Stone.white;
-    index = await this.putByAI(self, turnNo2);
-    console.log(index);
-    if (!this.put(self, index, turnNo2)) {
-      return;
-    }
-    self.turn.innerText =
-      self.turn.innerText == Stone.black ? Stone.white : Stone.black;
-    self.showStat();
   }
   onmousemove(self: Game, e: MouseEvent) {
     const rect = (e.target as HTMLElement).getBoundingClientRect();
@@ -96,29 +166,39 @@ class Board extends GameObject {
   canPut(self: any, index: number, turnNo: any) {
     return this.put(self, index, turnNo, true);
   }
-  put(game: Game, index: number, turnNo: any, dryRun = false) {
-    const getIdx = (pos: any, x: number, y: number) => {
-      return pos.x + x + (pos.y + y) * 8;
-    };
-    const x = index % 8;
-    const y = Math.floor(index / 8);
-    const currPos = { x: x, y: y };
-    // 上下左右に走査する。自分または空セルの場合は中断。
-    let flipCount = 0;
-    const flip = (f1: any, f2: any) => {
-      for (let y = 1; y < 8; y++) {
-        const i = f1(currPos, y);
-        if (i < 0 || 63 < i) {
-          continue;
+  put(game: Game, index: number, turnNo: string, dryRun = false) {
+    try {
+      const getIdx = (pos: any, x: number, y: number) => {
+        return pos.x + x + (pos.y + y) * 8;
+      };
+      const x = index % 8;
+      const y = Math.floor(index / 8);
+      const currPos = { x: x, y: y };
+      // 上下左右に走査する。自分または空セルの場合は中断。
+      let flipCount = 0;
+      const flip = (f1: any, f2: any) => {
+        let y = 1;
+        for (y = 1; y < 8; y++) {
+          const i = f1(y);
+          if (i < 0 || 63 < i) {
+            break;
+          }
+          const stone = game.stones[i];
+          if (stone == null) {
+            break;
+          }
+          if (stone.color == turnNo) {
+            break;
+          }
         }
-        if (game.stones[i] != 0 && game.stones[i] != turnNo) {
-          continue;
-        }
-        if (y > 1 && game.stones[i] == turnNo) {
-          for (const j of f2(i)) {
+        if (y > 1) {
+          for (const j of f2(y)) {
             flipCount++;
             if (!dryRun) {
-              game.stones[j] = turnNo;
+              console.log(`置く場所:${index} 端:${y} 間:${j}`);
+              const stone2 = game.stones[j];
+              if (!stone2) throw new Error(`stone2 is null. i:${y} j:${j}`);
+              stone2.color = turnNo;
               const x2 = j % 8;
               const y2 = Math.floor(j / 8);
               const items = game.children.filter(
@@ -130,113 +210,82 @@ class Board extends GameObject {
             }
           }
         }
-        break;
+      };
+      const fs = {
+        上: {
+          f1: (b: number) => {
+            return getIdx(currPos, 0, b * -1);
+          },
+          f2: function* (y: number) {
+            const i = getIdx(currPos, 0, y * -1 + 1);
+            for (let j = i; j < index; j += 8) {
+              yield j;
+            }
+          },
+        },
+        下: {
+          f1: (b: number) => {
+            return getIdx(currPos, 0, b);
+          },
+          f2: function* (y: number) {
+            const i = getIdx(currPos, 0, y - 1);
+            for (let j = i; j > index; j -= 8) {
+              yield j;
+            }
+          },
+        },
+        左: {
+          f1: (b: number) => {
+            return getIdx(currPos, b * -1, 0);
+          },
+          f2: function* (x: number) {
+            const i = getIdx(currPos, x * -1 + 1, 0);
+            for (let j = i; j < index; j += 1) {
+              yield j;
+            }
+          },
+        },
+        右: {
+          f1: (b: number) => {
+            return getIdx(currPos, b - 1, 0);
+          },
+          f2: function* (x: number) {
+            const i = getIdx(currPos, x - 1, 0);
+            for (let j = i; j > index; j -= 1) {
+              yield j;
+            }
+          },
+        },
+      };
+      if (flipCount == 0) console.log("上===============================");
+      flip(fs.上.f1, fs.上.f2);
+      if (flipCount == 0) console.log("下===============================");
+      flip(fs.下.f1, fs.下.f2);
+      if (flipCount == 0) console.log("左===============================");
+      flip(fs.左.f1, fs.左.f2);
+      if (flipCount == 0) console.log("右===============================");
+      flip(fs.右.f1, fs.右.f2);
+      if (flipCount == 0) {
+        return false;
       }
-    };
-    // 上
-    // 右上
-    // 右
-    // 右下↘︎
-    // 下
-    // 左下
-    // 左
-    // 左上
-    flip(
-      (currPos: any, y: number) => {
-        return getIdx(currPos, 0, y * -1);
-      },
-      function* (i: number) {
-        for (let j = i + 1; j < index; j += 8) {
-          yield j;
-        }
+      if (!dryRun) {
+        const stone = new Stone(this.game, x, y, turnNo);
+        game.stones[index] = stone;
+        this.game.children.push(stone);
       }
-    );
-    flip(
-      (currPos: any, y: number) => {
-        return getIdx(currPos, y, y * -1);
-      },
-      function* (i: number) {
-        for (let j = i + 1; j < index; j += 7) {
-          yield j;
-        }
-      }
-    );
-    flip(
-      (currPos: any, x: number) => {
-        return getIdx(currPos, x, 0);
-      },
-      function* (i: number) {
-        for (let j = i - 1; j > index; j -= 1) {
-          yield j;
-        }
-      }
-    );
-    flip(
-      (currPos: any, x: number) => {
-        return getIdx(currPos, x, x);
-      },
-      function* (i: number) {
-        for (let j = i - 1; j > index; j -= 9) {
-          yield j;
-        }
-      }
-    );
-    flip(
-      (currPos: any, y: number) => {
-        return getIdx(currPos, 0, y);
-      },
-      function* (i: number) {
-        for (let j = i - 1; j > index; j -= 8) {
-          yield j;
-        }
-      }
-    );
-    flip(
-      (currPos: any, y: number) => {
-        return getIdx(currPos, y * -1, y);
-      },
-      function* (i: number) {
-        for (let j = i - 1; j > index; j -= 7) {
-          yield j;
-        }
-      }
-    );
-    flip(
-      (currPos: any, x: number) => {
-        return getIdx(currPos, x * -1, 0);
-      },
-      function* (i: number) {
-        for (let j = i + 1; j < index; j += 1) {
-          yield j;
-        }
-      }
-    );
-    flip(
-      (currPos: any, y: number) => {
-        return getIdx(currPos, y * -1, y * -1);
-      },
-      function* (i: number) {
-        for (let j = i + 1; j < index; j += 9) {
-          yield j;
-        }
-      }
-    );
-    if (flipCount == 0) {
-      return false;
+      return true;
+    } catch (err) {
+      console.log(err);
+      throw err;
     }
-    if (!dryRun) {
-      game.stones[index] = turnNo;
-      this.game.children.push(new Stone(this.game, x, y, turnNo));
-    }
-    return true;
   }
   async putByAI(self: any, turnNo: any) {
     const toPreditionData = () => {
-      const get = (no: any):number[] => {
+      const get = (no: any): number[] => {
         // console.log(no);
         return self.stones.map((e: any) => {
-          if (e == 0) return 0;
-          if (e == no) return 1;
+          if (e == null) return 0;
+          if (e.color == no) return 1;
           return 0;
         });
       };
@@ -282,15 +331,15 @@ class Board extends GameObject {
 class Stone extends GameObject {
   static black = "黒";
   static white = "白";
-  static image: any = null;
+  static image: HTMLImageElement | null = null;
   static margin = 2;
   currentFrame;
   frames: any;
-  prevtime: any;
-  x;
-  y;
-  color;
-  constructor(game: Game, x: number, y: number, color: any) {
+  prevtime: number;
+  x: number;
+  y: number;
+  color: string;
+  constructor(game: Game, x: number, y: number, color: string) {
     super(game);
     if (!Stone.image) {
       const img = new Image();
@@ -373,8 +422,8 @@ class Game {
   frameCount: number;
   prevTime: number;
   size: number;
-  stones: any[];
-  turn: any;
+  stones: (Stone | null)[];
+  turn: HTMLElement;
   children: any[];
   constructor(parent: HTMLElement) {
     const self = this;
@@ -399,12 +448,14 @@ class Game {
       ) - 50;
     Game.cellWidth = (this.size - Game.borderWeight * 9) / 8;
     // リバーシ情報
-    this.stones = new Array(64).fill(0);
-    this.stones[27] = Stone.white;
-    this.stones[28] = Stone.black;
-    this.stones[35] = Stone.black;
-    this.stones[36] = Stone.white;
-    this.turn = document.getElementById("turn");
+    this.stones = new Array(64).fill(null);
+    this.stones[27] = new Stone(this, 3, 3, Stone.white);
+    this.stones[28] = new Stone(this, 4, 3, Stone.black);
+    this.stones[35] = new Stone(this, 3, 4, Stone.black);
+    this.stones[36] = new Stone(this, 4, 4, Stone.white);
+    const turn = document.getElementById("turn");
+    if (!turn) throw ReferenceError;
+    this.turn = turn;
     this.turn.innerText = Stone.black;
     this.children = [];
     this.children.push(new Board(this));
@@ -435,8 +486,10 @@ class Game {
   showStat() {
     const label = document.getElementById("stat");
     if (!label) throw ReferenceError;
-    const b = this.stones.filter((e: any) => e == Stone.black).length;
-    const w = this.stones.filter((e: any) => e == Stone.white).length;
+    const b = this.stones.filter((e: Stone | null) => e?.color == Stone.black)
+      .length;
+    const w = this.stones.filter((e: Stone | null) => e?.color == Stone.white)
+      .length;
     label.innerText = `黒:${b}まい 白:${w}まい`;
   }
   onmousemove(self: Game, e: MouseEvent) {
