@@ -70,17 +70,17 @@ export class Board extends GameObject {
       self.turn.innerText =
         self.turn.innerText == Stone.black ? Stone.white : Stone.black;
       self.showStat();
-      // // 白を自動で実行
-      // const turnNo2 =
-      //   self.turn.innerText == Stone.black ? Stone.black : Stone.white;
-      // index = await this.putByAI(self, turnNo2);
-      // console.log(index);
-      // if (!this.put(self, index, turnNo2)) {
-      //   return;
-      // }
-      // self.turn.innerText =
-      //   self.turn.innerText == Stone.black ? Stone.white : Stone.black;
-      // self.showStat();
+      // 白を自動で実行
+      const turnNo2 =
+        self.turn.innerText == Stone.black ? Stone.black : Stone.white;
+      index = await this.putByAI(self, turnNo2);
+      console.log(index);
+      if (!this.put(self, index, turnNo2)) {
+        return;
+      }
+      self.turn.innerText =
+        self.turn.innerText == Stone.black ? Stone.white : Stone.black;
+      self.showStat();
     } catch (err) {
       console.error(`${err}`);
     }
@@ -259,11 +259,11 @@ export class Board extends GameObject {
       throw err;
     }
   }
-  async putByAI(self: any, turnNo: any) {
+  async putByAI(self: Reversi, turnNo: any) {
     const toPreditionData = () => {
-      const get = (no: any): number[] => {
+      const get = (no: string): number[] => {
         // console.log(no);
-        return self.stones.map((e: any) => {
+        return self.stones.map((e: Stone) => {
           if (e == null) return 0;
           if (e.color == no) return 1;
           return 0;
@@ -316,6 +316,9 @@ class Stones {
     return Enumerable.from(this.stones)
       .where((e) => e.x == x && e.y == y)
       .firstOrDefault();
+  }
+  map<T>(callbackfn: (value: Stone) => T) {
+    return this.stones.map(callbackfn);
   }
   filter(predicate: (value: Stone) => boolean) {
     return this.stones.filter(predicate);
