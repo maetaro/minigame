@@ -3,14 +3,14 @@ import "linq";
 import Enumerable from "linq";
 
 import { GameObject, Game } from "./game";
+// TODO:import { Grid } from "./grid";
 
 export const sum = (...a: number[]) => a.reduce((acc, val) => acc + val, 0);
 
 export class Board extends GameObject {
-  hoverCellIndex: number | null;
+  hoverCellIndex: number | null = null;
   constructor(game: Game) {
     super(game);
-    this.hoverCellIndex = null;
   }
   update(timestamp: number) {}
   draw(context: CanvasRenderingContext2D) {
@@ -97,7 +97,7 @@ export class Board extends GameObject {
   onmouseout(self: Game, e: MouseEvent) {
     this.hoverCellIndex = null;
   }
-  canPut(self: any, index: number, turnNo: any) {
+  canPut(self: Reversi, index: number, turnNo: any) {
     return this.put(self, index, turnNo, true);
   }
   put(game: Reversi, index: number, turnNo: string, dryRun = false) {
@@ -273,8 +273,6 @@ export class Board extends GameObject {
         }
         return tmp;
       };
-      // console.log(get(Stone.black));
-      // console.log(get(Stone.white));
       const playerBoard = to8x8(get(turnNo));
       const enemyBoard = to8x8(
         get(turnNo == Stone.white ? Stone.black : Stone.white)
@@ -330,7 +328,7 @@ class Stone extends GameObject {
   static image: HTMLImageElement | null = null;
   static margin = 2;
   currentFrame;
-  frames: any;
+  frames: { ms: number; frames: number[] }[];
   prevtime: number;
   x: number;
   y: number;
