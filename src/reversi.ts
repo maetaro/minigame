@@ -177,36 +177,35 @@ class Board extends GameObject {
       const x = index % 8;
       const y = Math.floor(index / 8);
       const currPos = { x: x, y: y };
-      // 上下左右に走査する。自分または空セルの場合は中断。
+      const getScanIndexes = (f1: any) => {
+        const ret = [];
+        for (let y = 1; y < 8; y++) {
+          const nextPos = f1(y);
+          const i = getIdx(currPos, nextPos.x, nextPos.y);
+          if (i < 0 || 63 < i) {
+            break;
+          }
+          ret.push(i);
+        }
+        return ret;
+      };
+      const getFlipTargetIndexes = (scanIndexes: number[]) => {
+        const ret = [];
+        for (const i of scanIndexes) {
+          const stone = game.stones.index(i);
+          if (stone == null) {
+            return [];
+          }
+          if (stone.color == turnNo) {
+            break;
+          }
+          ret.push(i);
+        }
+        return ret;
+      };
       const flip = (f1: any) => {
-        const getScanIndexes = () => {
-          const ret = [];
-          for (let y = 1; y < 8; y++) {
-            const nextPos = f1(y);
-            const i = getIdx(currPos, nextPos.x, nextPos.y);
-            if (i < 0 || 63 < i) {
-              break;
-            }
-            ret.push(i);
-          }
-          return ret;
-        };
-        const scanIndexes = getScanIndexes();
-        const getFlipTargetIndexes = () => {
-          const ret = [];
-          for (const i of scanIndexes) {
-            const stone = game.stones.index(i);
-            if (stone == null) {
-              return [];
-            }
-            if (stone.color == turnNo) {
-              break;
-            }
-            ret.push(i);
-          }
-          return ret;
-        };
-        const flipTargets = getFlipTargetIndexes();
+        const scanIndexes = getScanIndexes(f1);
+        const flipTargets = getFlipTargetIndexes(scanIndexes);
         if (flipTargets.length > 0) {
           for (const j of flipTargets) {
             if (!dryRun) {
@@ -221,36 +220,44 @@ class Board extends GameObject {
         return flipTargets.length;
       };
       const fs = {
-        上: {
-          f1: (b: number) => {
-            return { x: 0, y: b * -1 };
-          },
+        上: (b: number) => {
+          return { x: 0, y: b * -1 };
         },
-        下: {
-          f1: (b: number) => {
-            return { x: 0, y: b };
-          },
+        下: (b: number) => {
+          return { x: 0, y: b };
         },
-        左: {
-          f1: (b: number) => {
-            return { x: b * -1, y: 0 };
-          },
+        左: (b: number) => {
+          return { x: b * -1, y: 0 };
         },
-        右: {
-          f1: (b: number) => {
-            return { x: b, y: 0 };
-          },
+        右: (b: number) => {
+          return { x: b, y: 0 };
+        },
+        左上: (b: number) => {
+          return { x: b * -1, y: b * -1 };
+        },
+        右上: (b: number) => {
+          return { x: b, y: b * -1 };
+        },
+        右下: (b: number) => {
+          return { x: b, y: b };
+        },
+        左下: (b: number) => {
+          return { x: b * -1, y: b };
         },
       };
       let flipCount = 0;
       if (!dryRun) console.log("上===============================");
-      flipCount += flip(fs.上.f1);
+      flipCount += flip(fs.上);
       if (!dryRun) console.log("下===============================");
-      flipCount += flip(fs.下.f1);
+      flipCount += flip(fs.下);
       if (!dryRun) console.log("左===============================");
-      flipCount += flip(fs.左.f1);
+      flipCount += flip(fs.左);
       if (!dryRun) console.log("右===============================");
-      flipCount += flip(fs.右.f1);
+      flipCount += flip(fs.右);
+      flipCount += flip(fs.左上);
+      flipCount += flip(fs.右上);
+      flipCount += flip(fs.右下);
+      flipCount += flip(fs.左下);
       if (flipCount == 0) {
         return false;
       }
