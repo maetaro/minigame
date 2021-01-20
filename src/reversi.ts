@@ -4,62 +4,6 @@ import Enumerable from "linq";
 
 export const sum = (...a: number[]) => a.reduce((acc, val) => acc + val, 0);
 
-export class StonePosition {
-  _x: number;
-  _y: number;
-  constructor(x: number, y?: number) {
-    if (!y) {
-      const i = x;
-      this._x = i % 8;
-      this._y = Math.floor(i / 8);
-      return;
-    }
-    if (x < 0 || 7 < x) {
-      throw new RangeError(`x value allowd in 0 to 7. actual:${x}`);
-    }
-    if (y < 0 || 7 < y) {
-      throw new RangeError(`x value allowd in 0 to 7. actual:${x}`);
-    }
-    this._x = x;
-    this._y = y;
-  }
-  get x() {
-    return this._x;
-  }
-  get y() {
-    return this._y;
-  }
-  toIdx() {
-    return this._x + this._y * 8;
-  }
-  nextUp(): [boolean, StonePosition | null] {
-    if (this._y == 0) return [false, null];
-    return [true, new StonePosition(this._x, this._y - 1)];
-  }
-  nextUpToBorder(): StonePosition[] {
-    let result: StonePosition[] = [];
-    let next = this.nextUp();
-    while (next[0]) {
-      if (next[1] == null) break;
-      result.push(next[1]);
-      next = next[1].nextUp();
-    }
-    return result;
-  }
-  nextDown() {
-    if (this._y == 7) return [false, null];
-    return [true, new StonePosition(this._x, this._y + 1)];
-  }
-  nextLeft() {
-    if (this._x == 0) return [false, null];
-    return [true, new StonePosition(this._x - 1, this._y)];
-  }
-  nextRight() {
-    if (this._x == 7) return [false, null];
-    return [true, new StonePosition(this._x + 1, this._y)];
-  }
-}
-
 class GameObject {
   game: Game;
   zOder: number = 0;
