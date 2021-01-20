@@ -180,26 +180,35 @@ class Board extends GameObject {
       const getScanIndexes = (f1: any) => {
         const ret = [];
         for (let y = 1; y < 8; y++) {
-          const nextPos = f1(y);
+          const nextPos = f1(currPos, y);
+          if (nextPos == null) {
+            break;
+          }
           const i = getIdx(currPos, nextPos.x, nextPos.y);
           if (i < 0 || 63 < i) {
             break;
           }
           ret.push(i);
         }
+        console.log(ret);
         return ret;
       };
       const getFlipTargetIndexes = (scanIndexes: number[]) => {
         const ret = [];
+        let canFlip = false;
         for (const i of scanIndexes) {
           const stone = game.stones.index(i);
           if (stone == null) {
             return [];
           }
           if (stone.color == turnNo) {
+            canFlip = true;
             break;
           }
           ret.push(i);
+        }
+        if (!canFlip) {
+          return [];
         }
         return ret;
       };
@@ -220,29 +229,85 @@ class Board extends GameObject {
         return flipTargets.length;
       };
       const fs = {
-        上: (b: number) => {
-          return { x: 0, y: b * -1 };
+        上: (currPos: { x: number; y: number }, b: number) => {
+          const incremental = { x: 0, y: b * -1 };
+          if (currPos.x + incremental.x < 0 || 7 < currPos.x + incremental.x) {
+            return null;
+          }
+          if (currPos.y + incremental.y < 0 || 7 < currPos.y + incremental.y) {
+            return null;
+          }
+          return incremental;
         },
-        下: (b: number) => {
-          return { x: 0, y: b };
+        下: (currPos: { x: number; y: number }, b: number) => {
+          const incremental = { x: 0, y: b };
+          if (currPos.x + incremental.x < 0 || 7 < currPos.x + incremental.x) {
+            return null;
+          }
+          if (currPos.y + incremental.y < 0 || 7 < currPos.y + incremental.y) {
+            return null;
+          }
+          return incremental;
         },
-        左: (b: number) => {
-          return { x: b * -1, y: 0 };
+        左: (currPos: { x: number; y: number }, b: number) => {
+          const incremental = { x: b * -1, y: 0 };
+          if (currPos.x + incremental.x < 0 || 7 < currPos.x + incremental.x) {
+            return null;
+          }
+          if (currPos.y + incremental.y < 0 || 7 < currPos.y + incremental.y) {
+            return null;
+          }
+          return incremental;
         },
-        右: (b: number) => {
-          return { x: b, y: 0 };
+        右: (currPos: { x: number; y: number }, b: number) => {
+          const incremental = { x: b, y: 0 };
+          if (currPos.x + incremental.x < 0 || 7 < currPos.x + incremental.x) {
+            return null;
+          }
+          if (currPos.y + incremental.y < 0 || 7 < currPos.y + incremental.y) {
+            return null;
+          }
+          return incremental;
         },
-        左上: (b: number) => {
-          return { x: b * -1, y: b * -1 };
+        左上: (currPos: { x: number; y: number }, b: number) => {
+          const incremental = { x: b * -1, y: b * -1 };
+          if (currPos.x + incremental.x < 0 || 7 < currPos.x + incremental.x) {
+            return null;
+          }
+          if (currPos.y + incremental.y < 0 || 7 < currPos.y + incremental.y) {
+            return null;
+          }
+          return incremental;
         },
-        右上: (b: number) => {
-          return { x: b, y: b * -1 };
+        右上: (currPos: { x: number; y: number }, b: number) => {
+          const incremental = { x: b, y: b * -1 };
+          if (currPos.x + incremental.x < 0 || 7 < currPos.x + incremental.x) {
+            return null;
+          }
+          if (currPos.y + incremental.y < 0 || 7 < currPos.y + incremental.y) {
+            return null;
+          }
+          return incremental;
         },
-        右下: (b: number) => {
-          return { x: b, y: b };
+        右下: (currPos: { x: number; y: number }, b: number) => {
+          const incremental = { x: b, y: b };
+          if (currPos.x + incremental.x < 0 || 7 < currPos.x + incremental.x) {
+            return null;
+          }
+          if (currPos.y + incremental.y < 0 || 7 < currPos.y + incremental.y) {
+            return null;
+          }
+          return incremental;
         },
-        左下: (b: number) => {
-          return { x: b * -1, y: b };
+        左下: (currPos: { x: number; y: number }, b: number) => {
+          const incremental = { x: b * -1, y: b };
+          if (currPos.x + incremental.x < 0 || 7 < currPos.x + incremental.x) {
+            return null;
+          }
+          if (currPos.y + incremental.y < 0 || 7 < currPos.y + incremental.y) {
+            return null;
+          }
+          return incremental;
         },
       };
       let flipCount = 0;
