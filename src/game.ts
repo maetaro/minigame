@@ -1,9 +1,20 @@
 import "linq";
 import Enumerable from "linq";
 
+export class Vector2 {
+  static readonly Zero: Vector2 = new Vector2(0, 0);
+  x: number;
+  y: number;
+  constructor(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+  }
+}
+
 export class GameObject {
   game: Game;
   zOder: number = 0;
+  position: Vector2 = Vector2.Zero;
   constructor(game: Game) {
     this.game = game;
   }
@@ -15,8 +26,6 @@ export class GameObject {
 }
 
 export class Game {
-  static borderWeight = 2;
-  static cellWidth = 0; //(this.size - (Game.borderWeight * 9)) / 8;
   fps: HTMLElement;
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
@@ -84,8 +93,6 @@ export class Game {
   }
   draw() {
     const size = this.size;
-    const borderWeight = Game.borderWeight;
-    const cellWidth = Game.cellWidth;
     const context = this.context;
 
     this.canvas.width = size;
