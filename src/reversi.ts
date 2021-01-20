@@ -8,16 +8,19 @@ import { GameObject, Game } from "./game";
 export const sum = (...a: number[]) => a.reduce((acc, val) => acc + val, 0);
 
 export class Board extends GameObject {
+  static borderWeight = 2;
+  static cellWidth = 0; //(this.size - (Game.borderWeight * 9)) / 8;
   hoverCellIndex: number | null = null;
   constructor(game: Game) {
     super(game);
+    Board.cellWidth = (game.size - Board.borderWeight * 9) / 8;
   }
   update(timestamp: number) {}
   draw(context: CanvasRenderingContext2D) {
     context.fillStyle = "green";
     context.fillRect(0, 0, this.game.size, this.game.size);
-    const borderWeight = Game.borderWeight;
-    const cellWidth = Game.cellWidth;
+    const borderWeight = Board.borderWeight;
+    const cellWidth = Board.cellWidth;
     context.fillStyle = "black";
     for (let i = 0; i < 9; i++) {
       const pos = (borderWeight + cellWidth) * i;
@@ -89,8 +92,8 @@ export class Board extends GameObject {
     if (mouseX < 0 || mouseY < 0) {
       return null;
     }
-    const x = Math.floor(mouseX / Game.cellWidth);
-    const y = Math.floor(mouseY / Game.cellWidth);
+    const x = Math.floor(mouseX / Board.cellWidth);
+    const y = Math.floor(mouseY / Board.cellWidth);
     const index = x + y * 8;
     this.hoverCellIndex = index;
   }
@@ -400,8 +403,8 @@ class Stone extends GameObject {
     const frameIndex = this.color == Stone.black ? 0 : 3;
     const frame = this.frames[frameIndex];
     const frames = frame.frames.slice(0, 8);
-    frames[4] += (Game.borderWeight + 67) * this.x + 2;
-    frames[5] += (Game.borderWeight + 67) * this.y + 2;
+    frames[4] += (Board.borderWeight + 67) * this.x + 2;
+    frames[5] += (Board.borderWeight + 67) * this.y + 2;
     context.drawImage(Stone.image, ...frames);
   }
   flip() {
@@ -416,7 +419,6 @@ export class Reversi extends Game {
   turn: HTMLElement;
   constructor(parent: HTMLElement) {
     super(parent);
-    Game.cellWidth = (this.size - Game.borderWeight * 9) / 8;
     // リバーシ情報
     this.stones = new Stones();
     const addStone = (x: number, y: number, color: string) => {
@@ -443,7 +445,7 @@ export class Reversi extends Game {
   }
   update(timestamp: number) {
     this.size = 560; // Math.min(document.documentElement.clientWidth, document.documentElement.clientHeight) - 50;
-    Game.cellWidth = (this.size - Game.borderWeight * 9) / 8;
+    Board.cellWidth = (this.size - Board.borderWeight * 9) / 8;
   }
 }
 
