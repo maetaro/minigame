@@ -2,21 +2,11 @@ import * as tf from "@tensorflow/tfjs";
 import "linq";
 import Enumerable from "linq";
 
+import { GameObject, Game } from "./game";
+
 export const sum = (...a: number[]) => a.reduce((acc, val) => acc + val, 0);
 
-class GameObject {
-  game: Game;
-  zOder: number = 0;
-  constructor(game: Game) {
-    this.game = game;
-  }
-  update(timestamp: number) {}
-  draw(context: CanvasRenderingContext2D) {}
-  onclick(self: Game, e: MouseEvent) {}
-  onmousemove(self: Game, e: MouseEvent) {}
-  onmouseout(self: Game, e: MouseEvent) {}
-}
-class Board extends GameObject {
+export class Board extends GameObject {
   hoverCellIndex: number | null;
   constructor(game: Game) {
     super(game);
@@ -59,7 +49,7 @@ class Board extends GameObject {
       context.stroke();
     }
   }
-  async onclick(self: Game, e: MouseEvent) {
+  async onclick(self: Reversi, e: MouseEvent) {
     try {
       if (this.hoverCellIndex == null) {
         return;
@@ -113,7 +103,7 @@ class Board extends GameObject {
   canPut(self: any, index: number, turnNo: any) {
     return this.put(self, index, turnNo, true);
   }
-  put(game: Game, index: number, turnNo: string, dryRun = false) {
+  put(game: Reversi, index: number, turnNo: string, dryRun = false) {
     try {
       const getIdx = (pos: any, x: number, y: number) => {
         return pos.x + x + (pos.y + y) * 8;
@@ -172,83 +162,71 @@ class Board extends GameObject {
         }
         return flipTargets.length;
       };
+      const isOutOfBounds = (
+        currPos: { x: number; y: number },
+        incremental: { x: number; y: number }
+      ) => {
+        if (currPos.x + incremental.x < 0 || 7 < currPos.x + incremental.x) {
+          return true;
+        }
+        if (currPos.y + incremental.y < 0 || 7 < currPos.y + incremental.y) {
+          return true;
+        }
+        return false;
+      };
       const fs = {
         上: (currPos: { x: number; y: number }, b: number) => {
           const incremental = { x: 0, y: b * -1 };
-          if (currPos.x + incremental.x < 0 || 7 < currPos.x + incremental.x) {
-            return null;
-          }
-          if (currPos.y + incremental.y < 0 || 7 < currPos.y + incremental.y) {
+          if (isOutOfBounds(currPos, incremental)) {
             return null;
           }
           return incremental;
         },
         下: (currPos: { x: number; y: number }, b: number) => {
           const incremental = { x: 0, y: b };
-          if (currPos.x + incremental.x < 0 || 7 < currPos.x + incremental.x) {
-            return null;
-          }
-          if (currPos.y + incremental.y < 0 || 7 < currPos.y + incremental.y) {
+          if (isOutOfBounds(currPos, incremental)) {
             return null;
           }
           return incremental;
         },
         左: (currPos: { x: number; y: number }, b: number) => {
           const incremental = { x: b * -1, y: 0 };
-          if (currPos.x + incremental.x < 0 || 7 < currPos.x + incremental.x) {
-            return null;
-          }
-          if (currPos.y + incremental.y < 0 || 7 < currPos.y + incremental.y) {
+          if (isOutOfBounds(currPos, incremental)) {
             return null;
           }
           return incremental;
         },
         右: (currPos: { x: number; y: number }, b: number) => {
           const incremental = { x: b, y: 0 };
-          if (currPos.x + incremental.x < 0 || 7 < currPos.x + incremental.x) {
-            return null;
-          }
-          if (currPos.y + incremental.y < 0 || 7 < currPos.y + incremental.y) {
+          if (isOutOfBounds(currPos, incremental)) {
             return null;
           }
           return incremental;
         },
         左上: (currPos: { x: number; y: number }, b: number) => {
           const incremental = { x: b * -1, y: b * -1 };
-          if (currPos.x + incremental.x < 0 || 7 < currPos.x + incremental.x) {
-            return null;
-          }
-          if (currPos.y + incremental.y < 0 || 7 < currPos.y + incremental.y) {
+          if (isOutOfBounds(currPos, incremental)) {
             return null;
           }
           return incremental;
         },
         右上: (currPos: { x: number; y: number }, b: number) => {
           const incremental = { x: b, y: b * -1 };
-          if (currPos.x + incremental.x < 0 || 7 < currPos.x + incremental.x) {
-            return null;
-          }
-          if (currPos.y + incremental.y < 0 || 7 < currPos.y + incremental.y) {
+          if (isOutOfBounds(currPos, incremental)) {
             return null;
           }
           return incremental;
         },
         右下: (currPos: { x: number; y: number }, b: number) => {
           const incremental = { x: b, y: b };
-          if (currPos.x + incremental.x < 0 || 7 < currPos.x + incremental.x) {
-            return null;
-          }
-          if (currPos.y + incremental.y < 0 || 7 < currPos.y + incremental.y) {
+          if (isOutOfBounds(currPos, incremental)) {
             return null;
           }
           return incremental;
         },
         左下: (currPos: { x: number; y: number }, b: number) => {
           const incremental = { x: b * -1, y: b };
-          if (currPos.x + incremental.x < 0 || 7 < currPos.x + incremental.x) {
-            return null;
-          }
-          if (currPos.y + incremental.y < 0 || 7 < currPos.y + incremental.y) {
+          if (isOutOfBounds(currPos, incremental)) {
             return null;
           }
           return incremental;
@@ -435,41 +413,15 @@ class Stone extends GameObject {
     this.color = this.color == Stone.black ? Stone.white : Stone.black;
   }
 }
-class Game {
+
+export class Reversi extends Game {
   static borderWeight = 2;
   static cellWidth = 0; //(this.size - (Game.borderWeight * 9)) / 8;
-  fps: HTMLElement;
-  canvas: HTMLCanvasElement;
-  context: CanvasRenderingContext2D;
-  frameCount: number;
-  prevTime: number;
-  size: number;
   stones: Stones;
   turn: HTMLElement;
-  children: GameObject[];
   constructor(parent: HTMLElement) {
-    const self = this;
-    // 描画情報
-    const fps = document.getElementById("fps");
-    if (!fps) throw ReferenceError;
-    this.fps = fps;
-    this.canvas = document.createElement("canvas");
-    const ctx = this.canvas.getContext("2d");
-    if (!ctx) throw ReferenceError;
-    this.context = ctx;
-    this.frameCount = 0;
-    this.prevTime = performance.now();
-    parent.appendChild(this.canvas);
-    this.canvas.onclick = (e: MouseEvent) => self.onclick(self, e);
-    this.canvas.onmousemove = (e: MouseEvent) => self.onmousemove(self, e);
-    this.canvas.onmouseout = (e: MouseEvent) => self.onmouseout(self, e);
-    this.size =
-      Math.min(
-        document.documentElement.clientWidth,
-        document.documentElement.clientHeight
-      ) - 50;
+    super(parent);
     Game.cellWidth = (this.size - Game.borderWeight * 9) / 8;
-    this.children = [];
     // リバーシ情報
     this.stones = new Stones();
     const addStone = (x: number, y: number, color: string) => {
@@ -486,25 +438,6 @@ class Game {
     this.turn = turn;
     this.turn.innerText = Stone.black;
     this.children.push(new Board(this));
-    requestAnimationFrame((timestamp) => this.mainloop(timestamp));
-  }
-  mainloop(timestamp: number) {
-    this.frameCount++;
-    this.update(timestamp);
-    this.draw();
-    const now = performance.now();
-    const elapsed = now - this.prevTime;
-    if (elapsed > 1000) {
-      this.fps.innerText = `${this.frameCount}fps`;
-      this.prevTime = performance.now();
-      this.frameCount = 0;
-    }
-    requestAnimationFrame((timestamp) => this.mainloop(timestamp));
-  }
-  async onclick(self: Game, e: MouseEvent) {
-    for (const iterator of this.children) {
-      iterator.onclick(self, e);
-    }
   }
   showStat() {
     const label = document.getElementById("stat");
@@ -513,50 +446,9 @@ class Game {
     const w = this.stones.filter((e: Stone) => e?.color == Stone.white).length;
     label.innerText = `黒:${b}まい 白:${w}まい`;
   }
-  onmousemove(self: Game, e: MouseEvent) {
-    for (const iterator of this.children) {
-      iterator.onmousemove(self, e);
-    }
-  }
-  onmouseout(self: Game, e: MouseEvent) {
-    for (const iterator of this.children) {
-      iterator.onmouseout(self, e);
-    }
-  }
   update(timestamp: number) {
-    for (const iterator of this.children) {
-      iterator.update(timestamp);
-    }
-  }
-  draw() {
     this.size = 560; // Math.min(document.documentElement.clientWidth, document.documentElement.clientHeight) - 50;
     Game.cellWidth = (this.size - Game.borderWeight * 9) / 8;
-
-    const size = this.size;
-    const borderWeight = Game.borderWeight;
-    const cellWidth = Game.cellWidth;
-    const context = this.context;
-
-    this.canvas.width = size;
-    this.canvas.height = size;
-    context.clearRect(0, 0, size, size);
-
-    Enumerable.from(this.children)
-      .orderBy((e) => e.zOder)
-      .forEach((e) => e.draw(context));
-
-    // 石
-    // for (let i = 0; i < this.stones.length; i++) {
-    //   const stone = this.stones[i];
-    //   const x = i % 8;
-    //   const y = Math.floor(i / 8);
-    //   if (stone == Stone.white) {
-    //     Stone.drawCircle(x, y, "white", this.context, borderWeight, cellWidth);
-    //   }
-    //   if (stone == Stone.black) {
-    //     Stone.drawCircle(x, y, "black", this.context, borderWeight, cellWidth);
-    //   }
-    // }
   }
 }
 
@@ -565,5 +457,5 @@ window.onload = () => {
   if (div == null) {
     return;
   }
-  new Game(div);
+  new Reversi(div);
 };
