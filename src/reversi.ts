@@ -79,9 +79,6 @@ export class Board extends GameObject {
       //   self.turn.innerText == Stone.black ? Stone.white : Stone.black;
       // self.showStat();
     } catch (err) {
-      console.error(`name: ${err.name}`);
-      console.error(`message: ${err.message}`);
-      console.error(`stack: ${err.stack}`);
       console.error(`${err}`);
     }
   }
