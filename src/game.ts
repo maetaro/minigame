@@ -49,11 +49,12 @@ export class Game {
     this.canvas.onclick = (e: MouseEvent) => self.onclick(self, e);
     this.canvas.onmousemove = (e: MouseEvent) => self.onmousemove(self, e);
     this.canvas.onmouseout = (e: MouseEvent) => self.onmouseout(self, e);
-    this.size =
-      Math.min(
-        document.documentElement.clientWidth,
-        document.documentElement.clientHeight
-      ) - 50;
+    // this.size =
+    //   Math.min(
+    //     document.documentElement.clientWidth,
+    //     document.documentElement.clientHeight
+    //   ) - 50;
+    this.size = 560;
     this.children = [];
     requestAnimationFrame((timestamp) => this.mainloop(timestamp));
   }
