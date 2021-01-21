@@ -3,6 +3,7 @@ import "linq";
 import Enumerable from "linq";
 
 import { GameObject, Game } from "./game";
+import { CircleShape, RectangleShape } from "./shape";
 // TODO:import { Grid } from "./grid";
 
 export const sum = (...a: number[]) => a.reduce((acc, val) => acc + val, 0);
@@ -438,6 +439,8 @@ export class Reversi extends Game {
     this.turn = turn;
     this.turn.innerText = Stone.black;
     this.children.push(new Board(this));
+    // this.children.push(new RectangleShape(this, 70, 140));
+    // this.children.push(new CircleShape(this, 30));
   }
   showStat() {
     const label = document.getElementById("stat");
@@ -447,8 +450,8 @@ export class Reversi extends Game {
     label.innerText = `黒:${b}まい 白:${w}まい`;
   }
   update(timestamp: number) {
-    this.size = 560; // Math.min(document.documentElement.clientWidth, document.documentElement.clientHeight) - 50;
-    Board.cellWidth = (this.size - Board.borderWeight * 9) / 8;
+    // this.size = 560; // Math.min(document.documentElement.clientWidth, document.documentElement.clientHeight) - 50;
+    // Board.cellWidth = (this.size - Board.borderWeight * 9) / 8;
   }
 }
 
