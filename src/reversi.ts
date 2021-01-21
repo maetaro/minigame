@@ -24,6 +24,8 @@ export class Board extends GameObject {
     this.cursor = new Cursor(game);
     this.cursor.fillStyle = "transparent";
     this.cursor.strokeStyle = "white";
+    this.cursor.visible = false;
+    game.children.push(this.cursor);
   }
   update(timestamp: number) {}
   draw(context: CanvasRenderingContext2D) {
@@ -47,7 +49,6 @@ export class Board extends GameObject {
         (y + 1) * cellWidth + (y + 1) * borderWeight
       );
     }
-    this.cursor.draw(context);
   }
   async onclick(self: Reversi, e: MouseEvent) {
     try {
@@ -97,11 +98,12 @@ export class Board extends GameObject {
       Board.borderWeight + (Board.borderWeight + this.cellWidth) * x + 1;
     const top =
       Board.borderWeight + (Board.borderWeight + this.cellWidth) * y + 1;
+    this.cursor.visible = true;
     this.cursor.position.x = left;
     this.cursor.position.y = top;
   }
   onmouseout(self: Game, e: MouseEvent) {
-    this.hoverCellIndex = null;
+    this.cursor.visible = false;
   }
   canPut(self: Reversi, index: number, turnNo: any) {
     return this.put(self, index, turnNo, true);
