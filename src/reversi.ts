@@ -8,20 +8,26 @@ import { CircleShape, RectangleShape } from "./shape";
 
 export const sum = (...a: number[]) => a.reduce((acc, val) => acc + val, 0);
 
+export class Curosor extends RectangleShape {
+  constructor(game: Game) {
+    super(game, 100, 100);
+  }
+}
+
 export class Board extends GameObject {
   static borderWeight = 2;
-  static cellWidth = 0; //(this.size - (Game.borderWeight * 9)) / 8;
+  cellWidth = 0; //(this.size - (Game.borderWeight * 9)) / 8;
   hoverCellIndex: number | null = null;
   constructor(game: Game) {
     super(game);
-    Board.cellWidth = (game.size - Board.borderWeight * 9) / 8;
+    this.cellWidth = (game.size - Board.borderWeight * 9) / 8;
   }
   update(timestamp: number) {}
   draw(context: CanvasRenderingContext2D) {
     context.fillStyle = "green";
     context.fillRect(0, 0, this.game.size, this.game.size);
     const borderWeight = Board.borderWeight;
-    const cellWidth = Board.cellWidth;
+    const cellWidth = this.cellWidth;
     context.fillStyle = "black";
     for (let i = 0; i < 9; i++) {
       const pos = (borderWeight + cellWidth) * i;
@@ -93,8 +99,8 @@ export class Board extends GameObject {
     if (mouseX < 0 || mouseY < 0) {
       return null;
     }
-    const x = Math.floor(mouseX / Board.cellWidth);
-    const y = Math.floor(mouseY / Board.cellWidth);
+    const x = Math.floor(mouseX / this.cellWidth);
+    const y = Math.floor(mouseY / this.cellWidth);
     const index = x + y * 8;
     this.hoverCellIndex = index;
   }
