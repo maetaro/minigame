@@ -59,8 +59,8 @@ export class Game {
   }
   mainloop(timestamp: number) {
     this.frameCount++;
-    this.update(timestamp);
-    this.draw();
+    this.callUpdate(timestamp);
+    this.callDraw();
     const now = performance.now();
     const elapsed = now - this.prevTime;
     if (elapsed > 1000) {
@@ -86,12 +86,13 @@ export class Game {
       iterator.onmouseout(self, e);
     }
   }
-  update(timestamp: number) {
+  callUpdate(timestamp: number) {
     for (const iterator of this.children) {
       iterator.update(timestamp);
     }
   }
-  draw() {
+  update(timestamp: number) {}
+  callDraw() {
     const size = this.size;
     const context = this.context;
 
@@ -103,4 +104,5 @@ export class Game {
       .orderBy((e) => e.zOder)
       .forEach((e) => e.draw(context));
   }
+  draw(context: CanvasRenderingContext2D) {}
 }
