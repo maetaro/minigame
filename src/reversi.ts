@@ -450,7 +450,7 @@ export class Reversi extends Game {
     label.innerText = `黒:${b}まい 白:${w}まい`;
   }
   update(timestamp: number) {
-    // this.size = 560; // Math.min(document.documentElement.clientWidth, document.documentElement.clientHeight) - 50;
+    this.size = 560; // Math.min(document.documentElement.clientWidth, document.documentElement.clientHeight) - 50;
     // Board.cellWidth = (this.size - Board.borderWeight * 9) / 8;
   }
 }
