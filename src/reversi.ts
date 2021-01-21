@@ -4,13 +4,12 @@ import Enumerable from "linq";
 
 import { GameObject, Game } from "./game";
 import { CircleShape, RectangleShape } from "./shape";
-// TODO:import { Grid } from "./grid";
 
 export const sum = (...a: number[]) => a.reduce((acc, val) => acc + val, 0);
 
-export class Curosor extends RectangleShape {
+export class Cursor extends RectangleShape {
   constructor(game: Game) {
-    super(game, 100, 100);
+    super(game, 67, 67);
   }
 }
 
@@ -18,9 +17,13 @@ export class Board extends GameObject {
   static borderWeight = 2;
   cellWidth = 0; //(this.size - (Game.borderWeight * 9)) / 8;
   hoverCellIndex: number | null = null;
+  cursor: Cursor;
   constructor(game: Game) {
     super(game);
     this.cellWidth = (game.size - Board.borderWeight * 9) / 8;
+    this.cursor = new Cursor(game);
+    this.cursor.fillStyle = "transparent";
+    this.cursor.strokeStyle = "white";
   }
   update(timestamp: number) {}
   draw(context: CanvasRenderingContext2D) {
@@ -44,20 +47,7 @@ export class Board extends GameObject {
         (y + 1) * cellWidth + (y + 1) * borderWeight
       );
     }
-    if (this.hoverCellIndex != null) {
-      const i = this.hoverCellIndex;
-      const x = i % 8;
-      const y = Math.floor(i / 8);
-      const left = (borderWeight + cellWidth) * x + 1;
-      const top = (borderWeight + cellWidth) * y + 1;
-      const width = borderWeight + cellWidth;
-      const height = borderWeight + cellWidth;
-      context.beginPath();
-      context.rect(left, top, width, height);
-      context.strokeStyle = "white";
-      context.lineWidth = 1;
-      context.stroke();
-    }
+    this.cursor.draw(context);
   }
   async onclick(self: Reversi, e: MouseEvent) {
     try {
@@ -103,6 +93,12 @@ export class Board extends GameObject {
     const y = Math.floor(mouseY / this.cellWidth);
     const index = x + y * 8;
     this.hoverCellIndex = index;
+    const left =
+      Board.borderWeight + (Board.borderWeight + this.cellWidth) * x + 1;
+    const top =
+      Board.borderWeight + (Board.borderWeight + this.cellWidth) * y + 1;
+    this.cursor.position.x = left;
+    this.cursor.position.y = top;
   }
   onmouseout(self: Game, e: MouseEvent) {
     this.hoverCellIndex = null;
