@@ -15,6 +15,7 @@ export class GameObject {
   game: Game;
   zOder: number = 0;
   position: Vector2 = Vector2.Zero;
+  visible: boolean = true;
   constructor(game: Game) {
     this.game = game;
   }
@@ -102,6 +103,7 @@ export class Game {
     context.clearRect(0, 0, size, size);
 
     Enumerable.from(this.children)
+      .where((e) => e.visible)
       .orderBy((e) => e.zOder)
       .forEach((e) => e.draw(context));
   }
