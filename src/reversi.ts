@@ -268,11 +268,18 @@ export class Board extends GameObject {
     const toPreditionData = () => {
       const get = (no: string): number[] => {
         // console.log(no);
-        return self.stones.map((e: Stone) => {
-          if (e == null) return 0;
-          if (e.color == no) return 1;
-          return 0;
-        });
+        const ret = new Array(64).fill(0);
+        for (const stone of self.stones.toArray()) {
+          if (stone.color == no) {
+            ret[stone.index] = 1;
+          }
+        }
+        return ret;
+        // return self.stones.map((e: Stone) => {
+        //   if (e == null) return 0;
+        //   if (e.color == no) return 1;
+        //   return 0;
+        // });
       };
       const to8x8 = (ary: number[]) => {
         var tmp = [];
@@ -322,6 +329,9 @@ class Stones {
       .where((e) => e.x == x && e.y == y)
       .firstOrDefault();
   }
+  toArray(): Stone[] {
+    return this.stones;
+  }
   map<T>(callbackfn: (value: Stone) => T) {
     return this.stones.map(callbackfn);
   }
@@ -344,6 +354,9 @@ class Stone extends GameObject {
   x: number;
   y: number;
   color: string;
+  get index() {
+    return this.x + this.y * 8;
+  }
   constructor(game: Game, x: number, y: number, color: string) {
     super(game);
     this.zOder = 1;
@@ -424,6 +437,7 @@ export class Reversi extends Game {
   static borderWeight = 2;
   static cellWidth = 0; //(this.size - (Game.borderWeight * 9)) / 8;
   stones: Stones;
+  board: Board;
   turn: HTMLElement;
   constructor(parent: HTMLElement) {
     super(parent);
@@ -438,13 +452,41 @@ export class Reversi extends Game {
     addStone(4, 3, Stone.black);
     addStone(3, 4, Stone.black);
     addStone(4, 4, Stone.white);
+    const skipButton = document.getElementById("skipButton");
+    if (!skipButton) throw ReferenceError;
+    skipButton.onclick = (e: MouseEvent) => {
+      this.skip();
+    };
+    const putByAIButton = document.getElementById("putByAIButton");
+    if (!putByAIButton) throw ReferenceError;
+    putByAIButton.onclick = (e: MouseEvent) => {
+      this.putByAIButton();
+    };
     const turn = document.getElementById("turn");
     if (!turn) throw ReferenceError;
     this.turn = turn;
     this.turn.innerText = Stone.black;
-    this.children.push(new Board(this));
+    this.board = new Board(this);
+    this.children.push(this.board);
     // this.children.push(new RectangleShape(this, 70, 140));
     // this.children.push(new CircleShape(this, 30));
+  }
+  skip() {
+    this.turn.innerText =
+      this.turn.innerText == Stone.black ? Stone.white : Stone.black;
+    this.showStat();
+  }
+  async putByAIButton() {
+    const turnNo2 =
+      this.turn.innerText == Stone.black ? Stone.black : Stone.white;
+    const index = await this.board.putByAI(this, turnNo2);
+    console.log(index);
+    if (!this.board.put(this, index, turnNo2)) {
+      return;
+    }
+    this.turn.innerText =
+      this.turn.innerText == Stone.black ? Stone.white : Stone.black;
+    this.showStat();
   }
   showStat() {
     const label = document.getElementById("stat");
