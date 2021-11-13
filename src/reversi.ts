@@ -25,26 +25,6 @@ export class Board extends GameObject {
     game.children.push(this.cursor);
   }
   update(timestamp: number) {}
-  draw(context: CanvasRenderingContext2D) {
-    context.fillStyle = "green";
-    context.fillRect(0, 0, this.game.size, this.game.size);
-    const borderWeight = Board.borderWeight;
-    const cellWidth = this.cellWidth;
-    context.fillStyle = "black";
-    for (let i = 0; i < 9; i++) {
-      const pos = (borderWeight + cellWidth) * i;
-      context.fillRect(pos, 0, borderWeight, this.game.size);
-      context.fillRect(0, pos, this.game.size, borderWeight);
-    }
-    for (let index = 0; index < 64; index++) {
-      context.font = "24px serif";
-      const x = index % 8;
-      const y = Math.floor(index / 8);
-      context.fillText(
-        `${index}`,
-        x * cellWidth + x * borderWeight,
-        (y + 1) * cellWidth + (y + 1) * borderWeight
-      );
     }
   }
   async onclick(self: Reversi, e: MouseEvent) {
