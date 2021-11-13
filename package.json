@@ -7,10 +7,11 @@
     "format": "prettier --write .",
     "test": "jest",
     "docs": "typedoc --options typedoc.json",
-    "build": "run-s format test docs build:webpack",
+    "build": "run-s format build:webpack",
     "build:webpack": "webpack",
+    "watch": "webpack watch",
     "start": "http-server dist",
-    "all": "run-s build start"
+    "all": "run-s build test docs start"
   },
   "repository": {
     "type": "git",
@@ -38,7 +39,8 @@
     "typedoc": "^0.22.8",
     "typescript": "^4.4.4",
     "webpack": "^5.64.0",
-    "webpack-cli": "^4.9.1"
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.4.0"
   },
   "dependencies": {
     "@tensorflow-models/mobilenet": "^2.1.0",
