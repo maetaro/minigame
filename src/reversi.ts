@@ -1,5 +1,6 @@
 import * as tf from "@tensorflow/tfjs";
 import { Game, GameObject } from "./game";
+import { Renderer } from "./renderer";
 import { RectangleShape } from "./shape";
 
 export const sum = (...a: number[]) => a.reduce((acc, val) => acc + val, 0);
@@ -25,7 +26,27 @@ export class Board extends GameObject {
     game.children.push(this.cursor);
   }
   update(timestamp: number) {}
-    }
+  draw() {
+    //TODO: context.fillStyle = "green";
+    //TODO: context.fillRect(0, 0, this.game.size, this.game.size);
+    //TODO: const borderWeight = Board.borderWeight;
+    //TODO: const cellWidth = this.cellWidth;
+    //TODO: context.fillStyle = "black";
+    //TODO: for (let i = 0; i < 9; i++) {
+    //TODO:   const pos = (borderWeight + cellWidth) * i;
+    //TODO:   context.fillRect(pos, 0, borderWeight, this.game.size);
+    //TODO:   context.fillRect(0, pos, this.game.size, borderWeight);
+    //TODO: }
+    //TODO: for (let index = 0; index < 64; index++) {
+    //TODO:   context.font = "24px serif";
+    //TODO:   const x = index % 8;
+    //TODO:   const y = Math.floor(index / 8);
+    //TODO:   context.fillText(
+    //TODO:     `${index}`,
+    //TODO:     x * cellWidth + x * borderWeight,
+    //TODO:     (y + 1) * cellWidth + (y + 1) * borderWeight
+    //TODO:   );
+    //TODO: }
   }
   async onclick(self: Reversi, e: MouseEvent) {
     try {
@@ -395,14 +416,14 @@ export class Stone extends GameObject {
       this.prevtime = timestamp;
     }
   }
-  draw(context: any) {
+  draw() {
     if (!Stone.image) return;
     const frameIndex = this.color == Stone.black ? 0 : 3;
     const frame = this.frames[frameIndex];
     const frames = frame.frames.slice(0, 8);
     frames[4] += (Board.borderWeight + 67) * this.x + 2;
     frames[5] += (Board.borderWeight + 67) * this.y + 2;
-    context.drawImage(Stone.image, ...frames);
+    Renderer.instance.drawImage(Stone.image, frames);
   }
   flip() {
     this.color = this.color == Stone.black ? Stone.white : Stone.black;

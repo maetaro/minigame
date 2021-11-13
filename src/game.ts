@@ -1,3 +1,5 @@
+import { Renderer } from "./renderer";
+
 /**
  * (module private class)
  */
@@ -30,7 +32,7 @@ export class GameObject {
     this.game = game;
   }
   update(timestamp: number) {}
-  draw(context: CanvasRenderingContext2D) {}
+  draw() {}
   onclick(self: Game, e: MouseEvent) {}
   onmousemove(self: Game, e: MouseEvent) {}
   onmouseout(self: Game, e: MouseEvent) {}
@@ -106,16 +108,15 @@ export class Game {
   update(timestamp: number) {}
   callDraw() {
     const size = this.size;
-    const context = this.context;
 
-    this.canvas.width = size;
-    this.canvas.height = size;
-    context.clearRect(0, 0, size, size);
+    const width = size;
+    const height = size;
+    Renderer.instance.clear(width, height);
 
     this.children
       .filter((e) => e.visible)
       .sort((a, b) => b.zOder - a.zOder)
-      .forEach((e) => e.draw(context));
+      .forEach((e) => e.draw());
   }
   draw(context: CanvasRenderingContext2D) {}
 }

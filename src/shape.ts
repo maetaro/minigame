@@ -1,4 +1,5 @@
 import { Game, GameObject } from "./game";
+import { Renderer } from "./renderer";
 
 /**
  * Shape Template class.
@@ -19,23 +20,16 @@ export class RectangleShape extends GameObject {
     this.width = width;
     this.height = height;
   }
-  update(timestamp: number) {
-    this.position.x += 1;
-    this.position.y += 1;
-  }
-  draw(context: CanvasRenderingContext2D) {
-    context.fillStyle = this.fillStyle;
-    context.fillRect(this.position.x, this.position.y, this.width, this.height);
-    context.strokeStyle = this.strokeStyle;
-    context.lineWidth = this.lineWidth;
-    context.strokeRect(
+  draw() {
+    Renderer.instance.drawRect(
       this.position.x,
       this.position.y,
       this.width,
-      this.height
+      this.height,
+      this.fillStyle,
+      this.strokeStyle,
+      this.lineWidth
     );
-    context.fill();
-    context.stroke();
   }
 }
 
@@ -48,17 +42,14 @@ export class CircleShape extends GameObject {
     super(game);
     this.radius = radius;
   }
-  update(timestamp: number) {
-    this.position.x += 1;
-    this.position.y += 1;
-  }
-  draw(context: CanvasRenderingContext2D) {
-    context.beginPath();
-    context.fillStyle = this.fillStyle;
-    context.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
-    context.fill();
-    context.strokeStyle = this.strokeStyle;
-    context.lineWidth = this.lineWidth;
-    context.stroke();
+  draw() {
+    Renderer.instance.drawCircle(
+      this.position.x,
+      this.position.y,
+      this.radius,
+      this.fillStyle,
+      this.strokeStyle,
+      this.lineWidth
+    );
   }
 }

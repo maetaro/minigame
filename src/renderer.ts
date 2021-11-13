@@ -7,16 +7,23 @@
  * ```
  */
 export class Renderer {
+  canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
   private static _instance: Renderer;
   public static get instance(): Renderer {
     return this._instance;
   }
-  private constructor(context: CanvasRenderingContext2D) {
+  private constructor(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D) {
+    this.canvas = canvas;
     this.context = context;
   }
-  public static init(context: CanvasRenderingContext2D) {
-    this._instance = new Renderer(context);
+  public static init(canvas: HTMLCanvasElement) {
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw ReferenceError;
+    this._instance = new Renderer(canvas, ctx);
+  }
+  public clear(width: number, height: number) {
+    this.context.clearRect(0, 0, width, height);
   }
   public drawRect(
     x: number,
