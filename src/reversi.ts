@@ -316,7 +316,7 @@ export class Board extends GameObject {
   }
 }
 
-class Stones {
+export class Stones {
   private stones: Stone[] = [];
   constructor() {}
   index(index: number): Stone | null {
@@ -339,7 +339,7 @@ class Stones {
   }
 }
 
-class Stone extends GameObject {
+export class Stone extends GameObject {
   static black = "黒";
   static white = "白";
   static image: HTMLImageElement | null = null;
