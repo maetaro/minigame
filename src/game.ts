@@ -1,5 +1,18 @@
+/**
+ * (module private class)
+ */
+class Vector2Empty {
+  get x(): number {
+    return 0;
+  }
+  get y(): number {
+    return 0;
+  }
+  constructor() {
+  }
+}
 export class Vector2 {
-  static readonly Zero: Vector2 = new Vector2(0, 0);
+  static readonly Zero: Vector2 = new Vector2Empty();
   x: number;
   y: number;
   constructor(x: number, y: number) {
