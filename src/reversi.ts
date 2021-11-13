@@ -1,9 +1,6 @@
 import * as tf from "@tensorflow/tfjs";
-import "linq";
-import Enumerable from "linq";
-
-import { GameObject, Game } from "./game";
-import { CircleShape, RectangleShape } from "./shape";
+import { Game, GameObject } from "./game";
+import { RectangleShape } from "./shape";
 
 export const sum = (...a: number[]) => a.reduce((acc, val) => acc + val, 0);
 
@@ -322,12 +319,11 @@ export class Board extends GameObject {
 class Stones {
   private stones: Stone[] = [];
   constructor() {}
-  index(index: number) {
+  index(index: number): Stone | null {
     const x = index % 8;
     const y = Math.floor(index / 8);
-    return Enumerable.from(this.stones)
-      .where((e) => e.x == x && e.y == y)
-      .firstOrDefault();
+    const s = this.stones.filter((e) => e.x == x && e.y == y);
+    return s.length > 0 ? s[0] : null;
   }
   toArray(): Stone[] {
     return this.stones;

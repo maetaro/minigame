@@ -1,6 +1,3 @@
-import "linq";
-import Enumerable from "linq";
-
 export class Vector2 {
   static readonly Zero: Vector2 = new Vector2(0, 0);
   x: number;
@@ -102,9 +99,9 @@ export class Game {
     this.canvas.height = size;
     context.clearRect(0, 0, size, size);
 
-    Enumerable.from(this.children)
-      .where((e) => e.visible)
-      .orderBy((e) => e.zOder)
+    this.children
+      .filter((e) => e.visible)
+      .sort((a, b) => b.zOder - a.zOder)
       .forEach((e) => e.draw(context));
   }
   draw(context: CanvasRenderingContext2D) {}
