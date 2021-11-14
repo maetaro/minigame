@@ -42,30 +42,31 @@ export class GameOptions {
   height: number = 0;
 }
 
-export class Game {
-  frameCount: number;
-  prevTime: number;
-  options: GameOptions;
+export abstract class Game {
+  frameCount: number = 0;
+  prevTime: number = 0;
+  options: GameOptions = new GameOptions();
   children: GameObject[] = [];
-  constructor(parent: HTMLElement, options: GameOptions) {
-    const self = this;
-    this.options = options;
-    const fps = document.getElementById("fps");
-    if (!fps) throw ReferenceError;
-    // TODO: GameOptionsクラスにまとめて、このコンストラクタで受け取るようにする。
+  constructor() {
+    // const fps = document.getElementById("fps");
+    // if (!fps) throw ReferenceError;
+    // デバッグ用FPS表示
+  }
+  attach(parent: HTMLElement) {
     const canvas = document.createElement("canvas");
-    const width = options.width;
-    const height = options.height;
+    const width = this.options.width;
+    const height = this.options.height;
     // 描画情報
     Renderer.init(canvas);
     canvas.width = width;
     canvas.height = height;
+    const self = this;
     canvas.onclick = (e: MouseEvent) => self.onclick(self, e);
     canvas.onmousemove = (e: MouseEvent) => self.onmousemove(self, e);
     canvas.onmouseout = (e: MouseEvent) => self.onmouseout(self, e);
     parent.appendChild(canvas);
-    // デバッグ用FPS表示
-    this.frameCount = 0;
+  }
+  start() {
     this.prevTime = performance.now();
     requestAnimationFrame((timestamp) => this.mainloop(timestamp));
   }
@@ -77,7 +78,7 @@ export class Game {
     const elapsed = now - this.prevTime;
     if (elapsed > 1000) {
       // this.fps.innerText = `${this.frameCount}fps`;
-      // Renderer.instance.drawText(x, y, `${this.frameCount}fps`);
+      // Renderer.instance().drawText(x, y, `${this.frameCount}fps`);
       this.prevTime = performance.now();
       this.frameCount = 0;
     }
@@ -108,7 +109,7 @@ export class Game {
   callDraw() {
     const width = this.options.width;
     const height = this.options.height;
-    Renderer.instance.clear(width, height);
+    Renderer.instance().clear(width, height);
 
     this.children
       .filter((e) => e.visible)

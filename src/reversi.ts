@@ -28,7 +28,7 @@ export class Board extends GameObject {
   update(timestamp: number) {}
   draw() {
     // 背景
-    Renderer.instance.drawRect(
+    Renderer.instance().drawRect(
       0,
       0,
       this.game.options.width,
@@ -46,7 +46,7 @@ export class Board extends GameObject {
       // if (y == 0) continue;
       const margin = 3;
       // 黒枠
-      Renderer.instance.drawRect(
+      Renderer.instance().drawRect(
         margin + (x * cellWidth + x * borderWeight) + x * -1,
         margin + (y * cellWidth + y * borderWeight) + y * -1,
         cellWidth,
@@ -55,7 +55,7 @@ export class Board extends GameObject {
         "black",
         Board.borderWeight
       );
-      Renderer.instance.drawText(
+      Renderer.instance().drawText(
         margin + (x * cellWidth + x * borderWeight) + x * -1 + 5,
         margin + (y * cellWidth + y * borderWeight) + y * -1 + 17,
         `${index}`,
@@ -440,7 +440,7 @@ export class Stone extends GameObject {
     const cellWidth = 67;
     frames[4] += Board.borderWeight * (this.x + 1) + cellWidth * this.x + 1;
     frames[5] += Board.borderWeight * (this.y + 1) + cellWidth * this.y + 1;
-    Renderer.instance.drawImage(Stone.image, frames);
+    Renderer.instance().drawImage(Stone.image, frames);
   }
   flip() {
     this.color = this.color == Stone.black ? Stone.white : Stone.black;
@@ -453,8 +453,8 @@ export class Reversi extends Game {
   stones: Stones;
   board: Board;
   turn: HTMLElement;
-  constructor(parent: HTMLElement, options: GameOptions) {
-    super(parent, options);
+  constructor() {
+    super();
     // リバーシ情報
     this.stones = new Stones();
     const addStone = (x: number, y: number, color: string) => {
@@ -523,5 +523,8 @@ window.onload = () => {
   const options = new GameOptions();
   options.width = 562;
   options.height = 562;
-  new Reversi(div, options);
+  const game = new Reversi();
+  game.options = options;
+  game.attach(div);
+  game.start();
 };

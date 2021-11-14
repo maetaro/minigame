@@ -21,7 +21,7 @@ export class RectangleShape extends GameObject {
     this.height = height;
   }
   draw() {
-    Renderer.instance.drawRect(
+    Renderer.instance().drawRect(
       this.position.x,
       this.position.y,
       this.width,
@@ -43,7 +43,7 @@ export class CircleShape extends GameObject {
     this.radius = radius;
   }
   draw() {
-    Renderer.instance.drawCircle(
+    Renderer.instance().drawCircle(
       this.position.x,
       this.position.y,
       this.radius,

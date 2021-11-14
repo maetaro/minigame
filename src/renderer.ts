@@ -10,7 +10,7 @@ export class Renderer {
   canvas: HTMLCanvasElement;
   context: CanvasRenderingContext2D;
   private static _instance: Renderer;
-  public static get instance(): Renderer {
+  public static instance(): Renderer {
     return this._instance;
   }
   private constructor(
