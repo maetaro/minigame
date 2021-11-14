@@ -28,7 +28,13 @@ export class Renderer {
   public clear(width: number, height: number) {
     this.context.clearRect(0, 0, width, height);
   }
-  public drawText(x: number, y: number, text: string, font: string, fillStyle: string | CanvasGradient | CanvasPattern) {
+  public drawText(
+    x: number,
+    y: number,
+    text: string,
+    font: string,
+    fillStyle: string | CanvasGradient | CanvasPattern
+  ) {
     this.context.font = font;
     this.context.fillStyle = fillStyle;
     this.context.fillText(text, x, y);
