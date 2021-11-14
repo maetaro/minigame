@@ -1,5 +1,5 @@
 import * as tf from "@tensorflow/tfjs";
-import { Game, GameObject, GameOptions } from "./game";
+import { Game, GameObject, GameOptions, Vector2 } from "./game";
 import { Renderer } from "./renderer";
 import { RectangleShape } from "./shape";
 
@@ -113,8 +113,7 @@ export class Board extends GameObject {
     const top =
       Board.borderWeight + (Board.borderWeight + this.cellWidth) * y + 1;
     this.cursor.visible = true;
-    this.cursor.position.x = left;
-    this.cursor.position.y = top;
+    this.cursor.position = new Vector2(left, top);
   }
   onmouseout(self: Game, e: MouseEvent) {
     this.cursor.visible = false;
