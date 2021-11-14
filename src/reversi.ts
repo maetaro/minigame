@@ -1,5 +1,5 @@
 import * as tf from "@tensorflow/tfjs";
-import { Game, GameObject } from "./game";
+import { Game, GameObject, GameOptions } from "./game";
 import { Renderer } from "./renderer";
 import { RectangleShape } from "./shape";
 
@@ -18,7 +18,7 @@ export class Board extends GameObject {
   cursor: Cursor;
   constructor(game: Game) {
     super(game);
-    this.cellWidth = (game.size - Board.borderWeight * 9) / 8;
+    this.cellWidth = (game.options.width - Board.borderWeight * 9) / 8;
     this.cursor = new Cursor(game);
     this.cursor.fillStyle = "transparent";
     this.cursor.strokeStyle = "white";
@@ -27,26 +27,42 @@ export class Board extends GameObject {
   }
   update(timestamp: number) {}
   draw() {
-    //TODO: context.fillStyle = "green";
-    //TODO: context.fillRect(0, 0, this.game.size, this.game.size);
-    //TODO: const borderWeight = Board.borderWeight;
-    //TODO: const cellWidth = this.cellWidth;
-    //TODO: context.fillStyle = "black";
-    //TODO: for (let i = 0; i < 9; i++) {
-    //TODO:   const pos = (borderWeight + cellWidth) * i;
-    //TODO:   context.fillRect(pos, 0, borderWeight, this.game.size);
-    //TODO:   context.fillRect(0, pos, this.game.size, borderWeight);
-    //TODO: }
-    //TODO: for (let index = 0; index < 64; index++) {
-    //TODO:   context.font = "24px serif";
-    //TODO:   const x = index % 8;
-    //TODO:   const y = Math.floor(index / 8);
-    //TODO:   context.fillText(
-    //TODO:     `${index}`,
-    //TODO:     x * cellWidth + x * borderWeight,
-    //TODO:     (y + 1) * cellWidth + (y + 1) * borderWeight
-    //TODO:   );
-    //TODO: }
+    // 背景
+    Renderer.instance.drawRect(
+      0,
+      0,
+      this.game.options.width,
+      this.game.options.height,
+      "green",
+      "green",
+      1
+    );
+    const borderWeight = 1; //Board.borderWeight;
+    const cellWidth = 69.5; //this.cellWidth;
+    for (let index = 0; index < 64; index++) {
+      const x = index % 8;
+      const y = Math.floor(index / 8);
+      // if (x == 0) continue;
+      // if (y == 0) continue;
+      const margin = 3;
+      // 黒枠
+      Renderer.instance.drawRect(
+        margin + (x * cellWidth + x * borderWeight) + x * -1,
+        margin + (y * cellWidth + y * borderWeight) + y * -1,
+        cellWidth,
+        cellWidth,
+        "transparent",
+        "black",
+        Board.borderWeight
+      );
+      Renderer.instance.drawText(
+        margin + (x * cellWidth + x * borderWeight) + x * -1 + 5,
+        margin + (y * cellWidth + y * borderWeight) + y * -1 + 17,
+        `${index}`,
+        "14px sans-serif",
+        "black"
+      );
+    }
   }
   async onclick(self: Reversi, e: MouseEvent) {
     try {
@@ -421,8 +437,9 @@ export class Stone extends GameObject {
     const frameIndex = this.color == Stone.black ? 0 : 3;
     const frame = this.frames[frameIndex];
     const frames = frame.frames.slice(0, 8);
-    frames[4] += (Board.borderWeight + 67) * this.x + 2;
-    frames[5] += (Board.borderWeight + 67) * this.y + 2;
+    const cellWidth = 67;
+    frames[4] += Board.borderWeight * (this.x + 1) + cellWidth * this.x + 1;
+    frames[5] += Board.borderWeight * (this.y + 1) + cellWidth * this.y + 1;
     Renderer.instance.drawImage(Stone.image, frames);
   }
   flip() {
@@ -436,8 +453,8 @@ export class Reversi extends Game {
   stones: Stones;
   board: Board;
   turn: HTMLElement;
-  constructor(parent: HTMLElement) {
-    super(parent);
+  constructor(parent: HTMLElement, options: GameOptions) {
+    super(parent, options);
     // リバーシ情報
     this.stones = new Stones();
     const addStone = (x: number, y: number, color: string) => {
@@ -493,7 +510,7 @@ export class Reversi extends Game {
     label.innerText = `黒:${b}まい 白:${w}まい`;
   }
   update(timestamp: number) {
-    this.size = 560; // Math.min(document.documentElement.clientWidth, document.documentElement.clientHeight) - 50;
+    // this.size = 560; // Math.min(document.documentElement.clientWidth, document.documentElement.clientHeight) - 50;
     // Board.cellWidth = (this.size - Board.borderWeight * 9) / 8;
   }
 }
@@ -503,5 +520,8 @@ window.onload = () => {
   if (div == null) {
     return;
   }
-  new Reversi(div);
+  const options = new GameOptions();
+  options.width = 562;
+  options.height = 562;
+  new Reversi(div, options);
 };

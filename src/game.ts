@@ -10,8 +10,7 @@ class Vector2Empty {
   get y(): number {
     return 0;
   }
-  constructor() {
-  }
+  constructor() {}
 }
 export class Vector2 {
   static readonly Zero: Vector2 = new Vector2Empty();
@@ -23,7 +22,7 @@ export class Vector2 {
   }
 }
 
-export class GameObject {
+export abstract class GameObject {
   game: Game;
   zOder: number = 0;
   position: Vector2 = Vector2.Zero;
@@ -38,37 +37,36 @@ export class GameObject {
   onmouseout(self: Game, e: MouseEvent) {}
 }
 
+export class GameOptions {
+  width: number = 0;
+  height: number = 0;
+}
+
 export class Game {
-  fps: HTMLElement;
-  canvas: HTMLCanvasElement;
-  context: CanvasRenderingContext2D;
   frameCount: number;
   prevTime: number;
-  size: number;
-  children: GameObject[];
-  constructor(parent: HTMLElement) {
+  options: GameOptions;
+  children: GameObject[] = [];
+  constructor(parent: HTMLElement, options: GameOptions) {
     const self = this;
-    // 描画情報
+    this.options = options;
     const fps = document.getElementById("fps");
     if (!fps) throw ReferenceError;
-    this.fps = fps;
-    this.canvas = document.createElement("canvas");
-    const ctx = this.canvas.getContext("2d");
-    if (!ctx) throw ReferenceError;
-    this.context = ctx;
+    // TODO: GameOptionsクラスにまとめて、このコンストラクタで受け取るようにする。
+    const canvas = document.createElement("canvas");
+    const width = options.width;
+    const height = options.height;
+    // 描画情報
+    Renderer.init(canvas);
+    canvas.width = width;
+    canvas.height = height;
+    canvas.onclick = (e: MouseEvent) => self.onclick(self, e);
+    canvas.onmousemove = (e: MouseEvent) => self.onmousemove(self, e);
+    canvas.onmouseout = (e: MouseEvent) => self.onmouseout(self, e);
+    parent.appendChild(canvas);
+    // デバッグ用FPS表示
     this.frameCount = 0;
     this.prevTime = performance.now();
-    parent.appendChild(this.canvas);
-    this.canvas.onclick = (e: MouseEvent) => self.onclick(self, e);
-    this.canvas.onmousemove = (e: MouseEvent) => self.onmousemove(self, e);
-    this.canvas.onmouseout = (e: MouseEvent) => self.onmouseout(self, e);
-    // this.size =
-    //   Math.min(
-    //     document.documentElement.clientWidth,
-    //     document.documentElement.clientHeight
-    //   ) - 50;
-    this.size = 560;
-    this.children = [];
     requestAnimationFrame((timestamp) => this.mainloop(timestamp));
   }
   mainloop(timestamp: number) {
@@ -78,7 +76,8 @@ export class Game {
     const now = performance.now();
     const elapsed = now - this.prevTime;
     if (elapsed > 1000) {
-      this.fps.innerText = `${this.frameCount}fps`;
+      // this.fps.innerText = `${this.frameCount}fps`;
+      // Renderer.instance.drawText(x, y, `${this.frameCount}fps`);
       this.prevTime = performance.now();
       this.frameCount = 0;
     }
@@ -107,15 +106,13 @@ export class Game {
   }
   update(timestamp: number) {}
   callDraw() {
-    const size = this.size;
-
-    const width = size;
-    const height = size;
+    const width = this.options.width;
+    const height = this.options.height;
     Renderer.instance.clear(width, height);
 
     this.children
       .filter((e) => e.visible)
-      .sort((a, b) => b.zOder - a.zOder)
+      .sort((a, b) => a.zOder - b.zOder)
       .forEach((e) => e.draw());
   }
   draw(context: CanvasRenderingContext2D) {}
